@@ -5,7 +5,7 @@ sys.path.insert(0, os.getcwd())
 from numerics.utilities.misc import *
 import numpy as np
 
-x = load(itraj=1)
+x = load_data(itraj=10)
 
 plt.figure(figsize=(5,2))
 ax=plt.subplot(131)
