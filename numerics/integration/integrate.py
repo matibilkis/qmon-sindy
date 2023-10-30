@@ -43,7 +43,7 @@ def integrate(params, total_time=1, int_step=1e-1, itraj=1, exp_path="",**kwargs
     G = np.zeros((2,2))
 
     Cov = solve_continuous_are(A-(G.dot(C)).T, C.T, D- (G.T).dot(G), np.eye(2)) #### A.T because the way it's implemented!
-    XiCov = Cov.dot(C) + G.T
+    XiCov = Cov.dot(C.T) + G.T
 
     hidden_state, external_signal, dys = IntLoop(times)
 
