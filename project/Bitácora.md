@@ -34,3 +34,12 @@ https://arxiv.org/abs/2305.04108
 
 
 El Lasso o estas cosas con el SIndy directamente no las podemos hacer, necesitamos la recurrent cell, porque esto es por un lado estocástico, y por otro lado el estado depende del measurement outcome! Entonces necesitamos una suerte de Kalman... valdría la pena inspeccionar extended Kalman?
+
+
+## Implementation
+
+![[Pasted image 20231031132052.png]]
+
+![[Pasted image 20231031131954.png]]
+
+* The gradients are very small and I need to enlarge the learning_rate!

@@ -18,12 +18,12 @@ def get_def_path():
 
 
 def give_params():
-    gamma = 15*2*np.pi
-    omega = 2*np.pi*1e3
-    n = 14.0
-    eta = 1.
-    kappa = 360*2*np.pi
-    b = 0.
+    #kappa, gamma, omega, n, eta, b = 1., 1e-4, 1e-4, 1e-3, 1e-5, 0.
+#    gamma, omega, n, eta, kappa,b  = 15*2*np.pi, 2*np.pi*1e3, 14., 1., 360*2*np.pi, 0. ##Giulio's
+
+    ## I modify a bit the signal-noise ratio
+    gamma, omega, n, eta, kappa,b  = 15*2*np.pi, 2*np.pi*1e3, 14., 1000., 360*2*np.pi, 0. ##Giulio's
+
     p= [gamma, omega, n, eta, kappa, b]
     return p, str(p)+"/"
 
