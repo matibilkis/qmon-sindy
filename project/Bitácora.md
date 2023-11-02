@@ -43,3 +43,11 @@ El Lasso o estas cosas con el SIndy directamente no las podemos hacer, necesitam
 ![[Pasted image 20231031131954.png]]
 
 * The gradients are very small and I need to enlarge the learning_rate!
+
+
+
+![[Pasted image 20231031164443.png]]
+
+
+Little roadmap:
+i need to improve signal-noise ratio

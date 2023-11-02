@@ -22,7 +22,7 @@ def give_params():
 #    gamma, omega, n, eta, kappa,b  = 15*2*np.pi, 2*np.pi*1e3, 14., 1., 360*2*np.pi, 0. ##Giulio's
 
     ## I modify a bit the signal-noise ratio
-    gamma, omega, n, eta, kappa,b  = 15*2*np.pi, 2*np.pi*1e3, 14., 1000., 360*2*np.pi, 0. ##Giulio's
+    gamma, omega, n, eta, kappa,b  = 15*2*np.pi, 2*np.pi*1e3, 14., 1., 360*2*np.pi, 0. ##Giulio's
 
     p= [gamma, omega, n, eta, kappa, b]
     return p, str(p)+"/"
