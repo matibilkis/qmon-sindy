@@ -14,12 +14,14 @@ def Euler_step_state(x, noise_vector, f):
 
 @jit(nopython=True)
 def Euler_step_signal(f):
-    return f + b*dt
+    #prams_foce = [omega, gamma]  linear oscillator
+    return f + signal_coeff.dot(f)*dt
 
 def IntLoop(times):
     N = len(times)
     hidden_state = np.zeros((N,2))
     external_signal = np.zeros((N,2))
+    external_signal[0] = np.array([2e5,0.])
     dys = [[0.,0.]]
     for ind, t in enumerate(times[:-1]):
         hidden_state[ind+1] = Euler_step_state(hidden_state[ind], dW[ind], external_signal[ind])
@@ -28,19 +30,21 @@ def IntLoop(times):
     return hidden_state, external_signal, dys
 
 def integrate(params, total_time=1, int_step=1e-1, itraj=1, exp_path="",**kwargs):
-    global dt, proj_C, A, XiCov, C, dW, b
+    global dt, proj_C, A, XiCov, C, dW, params_force, signal_coeff
     dt = int_step
     #### generate long trajectory of noises
     np.random.seed(itraj)
     times = np.arange(0.,total_time+dt,dt)
     dW = np.sqrt(dt)*np.random.randn(len(times),2)
-    gamma, omega, n, eta, kappa, b = params
+    gamma, omega, n, eta, kappa, params_force = params
 
     A = np.array([[-gamma/2, omega],[-omega, -gamma/2]])
     proj_C = np.array([[1.,0.],[0.,0.]])
     C = np.sqrt(4*eta*kappa)*proj_C
     D = np.diag([gamma*(n+0.5) + kappa]*2)
     G = np.zeros((2,2))
+    signal_coeff = np.array([[-params_force[1], params_force[0]],[-params_force[0], -params_force[1]]])
+
 
     Cov = solve_continuous_are((A-G.dot(C)).T, C.T, D- (G.T).dot(G), np.eye(2)) #### A.T because the way it's implemented!
     XiCov = Cov.dot(C.T) + G.T
@@ -77,7 +81,7 @@ if __name__ == "__main__":
     params, exp_path = give_params()
 
     ####
-    gamma, omega, n, eta, kappa, b = params
+    gamma, omega, n, eta, kappa, params_force = params
     period = (2*np.pi/omega)
     total_time = period*10
     dt = period/500
