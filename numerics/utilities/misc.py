@@ -27,6 +27,7 @@ def give_params():
     p= [gamma, omega, n, eta, kappa, params_force]
     return p, str(p)+"/"
 
+
 def load_data(itraj = 1, what="hidden_state.npy"):
     """
     what can be either "dys.npy", "external_signal.npy", or hidden_state.npy
