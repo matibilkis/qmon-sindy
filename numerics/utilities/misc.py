@@ -37,8 +37,8 @@ def load_data(itraj = 1, what="hidden_state.npy"):
     ####
     gamma, omega, n, eta, kappa, b = params
     period = (2*np.pi/omega)
-    total_time = period*10
-    dt = period/500
+    total_time = period*50
+    dt = period/100
 
     path = get_def_path()+ exp_path + "{}itraj/T_{}_dt_{}/".format(itraj, total_time, dt)
     return np.load(path+what)
