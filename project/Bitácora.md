@@ -51,3 +51,47 @@ El Lasso o estas cosas con el SIndy directamente no las podemos hacer, necesitam
 
 Little roadmap:
 i need to improve signal-noise ratio
+
+
+
+
+
+
+
+### Toy-example, sindy w/ gradients in torch
+
+
+it's the torch_integrate_lineal_oscillator.ipynb
+
+
+I initiallize in the right parameters, then it doesn't move "much"
+
+![[Pasted image 20231105110438.png]]
+
+### alpha = 10.
+
+![[Pasted image 20231105110549.png]]
+
+![[Pasted image 20231105110601.png]]
+
+
+### alpha = 0.0
+
+![[Pasted image 20231105113014.png]]
+
+
+
+I will free the parameters now,
+beggining with 2*A_true + zeros(cubic)
+
+![[Pasted image 20231105112315.png]]observe that there is a very small contribution (~0.1) of the frequency for the third mode...
+if we needed to replicate the dynamics:
+
+![[Pasted image 20231105112622.png]]
+
+(ni tan mal...)
+
+
+ahora a bit less "sparse" intiially---> WRONG!
+
+![[Pasted image 20231106105350.png]]
