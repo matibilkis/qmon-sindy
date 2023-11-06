@@ -22,11 +22,10 @@ def give_params():
 #    gamma, omega, n, eta, kappa,b  = 15*2*np.pi, 2*np.pi*1e3, 14., 1., 360*2*np.pi, 0. ##Giulio's
 
     ## I modify a bit the signal-noise ratio
-    gamma, omega, n, eta, kappa, params_force  = 15*2*np.pi, 2*np.pi*1e3, 14., 1., 360*2*np.pi, [1e3, 5e1]   ##Giulio's
-
-    p= [gamma, omega, n, eta, kappa, params_force]
+    gamma, omega, n, eta, kappa, params_force  = 15*2*np.pi, 2*np.pi*1e2, 14., 1., 360*2*np.pi, [2e2, 5]   ##Giulio's
+    data_t = [periods, ppp] = [5, 200]
+    p= [gamma, omega, n, eta, kappa, params_force, data_t]
     return p, str(p)+"/"
-
 
 def load_data(itraj = 1, what="hidden_state.npy"):
     """
@@ -35,10 +34,10 @@ def load_data(itraj = 1, what="hidden_state.npy"):
     params, exp_path = give_params()
 
     ####
-    gamma, omega, n, eta, kappa, b = params
+    gamma, omega, n, eta, kappa, b, [periods, ppp] = params
     period = (2*np.pi/omega)
-    total_time = period*50
-    dt = period/100
+    total_time = period*periods
+    dt = period/ppp
 
     path = get_def_path()+ exp_path + "{}itraj/T_{}_dt_{}/".format(itraj, total_time, dt)
     return np.load(path+what)

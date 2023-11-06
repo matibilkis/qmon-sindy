@@ -81,12 +81,12 @@ if __name__ == "__main__":
     params, exp_path = give_params()
 
     ####
-    gamma, omega, n, eta, kappa, params_force = params
+    gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
     period = (2*np.pi/omega)
-    total_time = period*10
-    dt = period/500
+    total_time = period*periods
+    dt = period/ppp
 
-    integrate(params=params,
+    integrate(params=params[:-1],
               total_time = total_time,
               int_step = dt,
               itraj=itraj,
