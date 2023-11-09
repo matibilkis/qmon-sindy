@@ -54,7 +54,7 @@ def integrate(params, total_time=1, int_step=1e-1, itraj=1, exp_path="",**kwargs
     path = get_def_path() + exp_path + "{}itraj/T_{}_dt_{}/".format(itraj, total_time, dt)
     os.makedirs(path, exist_ok=True)
 
-    if len(times)>1e4:
+    if len(times)>1e8:
         indis = np.linspace(0,len(times)-1, int(1e4)).astype(int)
     else:
         indis = np.arange(0,len(times))

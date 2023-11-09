@@ -23,7 +23,7 @@ def give_params():
 
     ## I modify a bit the signal-noise ratio
     #gamma, omega, n, eta, kappa, params_force  = 15*2*np.pi, 2*np.pi*1e2, 14., 1., 360*2*np.pi, [2e2, 5]   ##Giulio's
-    gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 0.8, [0., 1.]
+    gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [0., .1] ##antes kappa = 0.8
 
     data_t = [periods, ppp] = [10., 500]
     p= [gamma, omega, n, eta, kappa, params_force, data_t]
