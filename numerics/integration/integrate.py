@@ -21,7 +21,7 @@ def IntLoop(times):
     N = len(times)
     hidden_state = np.zeros((N,2))
     external_signal = np.zeros((N,2))
-    external_signal[0] = np.array([0.,2e1])
+    external_signal[0] = np.array([0.,2e2])
     dys = [[0.,0.]]
     for ind, t in enumerate(times[:-1]):
         hidden_state[ind+1] = Euler_step_state(hidden_state[ind], dW[ind], external_signal[ind])
