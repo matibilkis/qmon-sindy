@@ -21,7 +21,7 @@ def IntLoop(times):
     N = len(times)
     hidden_state = np.zeros((N,2))
     external_signal = np.zeros((N,2))
-    external_signal[0] = np.array([0.,2e2])
+    external_signal[0] = np.array([0.,f0])
     dys = [[0.,0.]]
     for ind, t in enumerate(times[:-1]):
         hidden_state[ind+1] = Euler_step_state(hidden_state[ind], dW[ind], external_signal[ind])
@@ -30,8 +30,10 @@ def IntLoop(times):
     return hidden_state, external_signal, dys
 
 def integrate(params, periods=10,ppp=500,  itraj=1, exp_path="",**kwargs):
-    global dt, proj_C, A, XiCov, C, dW, params_force, signal_coeff
+    global dt, proj_C, A, XiCov, C, dW, params_force, signal_coeff,f0
     gamma, omega, n, eta, kappa, params_force = params
+
+    f0 = params_force[0]
 
     period = (2*np.pi/omega)
     total_time = period*periods
@@ -47,7 +49,7 @@ def integrate(params, periods=10,ppp=500,  itraj=1, exp_path="",**kwargs):
     C = np.sqrt(4*eta*kappa)*proj_C
     D = np.diag([gamma*(n+0.5) + kappa]*2)
     G = np.zeros((2,2))
-    signal_coeff = np.array([[-params_force[1], params_force[0]],[-params_force[0], -params_force[1]]])
+    signal_coeff = np.array([[-params_force[1], params_force[2]],[-params_force[2], -params_force[1]]])
 
 
     Cov = solve_continuous_are((A-G.dot(C)).T, C.T, D- (G.T).dot(G), np.eye(2)) #### A.T because the way it's implemented!

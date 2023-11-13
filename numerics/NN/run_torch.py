@@ -9,7 +9,7 @@ from scipy.linalg import solve_continuous_are
 from numerics.NN.models import *
 from numerics.NN.losses import *
 from numerics.NN.misc import *
-
+import copy
 
 
 x = load_data(itraj=1, what="hidden_state.npy")
@@ -26,7 +26,7 @@ dt = period/ppp
 times = np.arange(0,total_time+dt,dt)
 ###
 
-inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], [150., -0.5]]
+inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], [150., -1.]]
 
 
 torch.manual_seed(0)
@@ -34,7 +34,7 @@ torch.manual_seed(0)
 dev = torch.device("cpu")
 rrn = RecurrentNetwork(inputs_cell)
 
-optimizer = torch.optim.Adam(list(rrn.parameters()), lr=1e-3)
+optimizer = torch.optim.Adam(list(rrn.parameters()), lr=1e-2)
 
 dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
 
@@ -42,7 +42,7 @@ xs_hat, dys_hat, fs_hats = rrn(dys)
 loss = log_lik(dys, dys_hat)
 history = {}
 history["losses"] = [ [loss.item(),err_f(f[:,1],fs_hats)]  ]
-history["params"] = [[k.detach().numpy() for k in list(rrn.parameters())]]
+history["params"] = [[k.detach().data for k in list(rrn.parameters())]]
 history["gradients"] = []
 
 
@@ -60,8 +60,8 @@ for ind in tqdm(range(2000)):
 
 
     history["losses"].append([loss.item(),signal_distance] )
-    history["params"].append([k.detach().numpy() for k in list(rrn.parameters())])
-    history["gradients"].append([k.grad.numpy() for k in list(rrn.parameters())])
+    history["params"].append([k.detach().data for k in copy.deepcopy(list(rrn.parameters()))])
+    history["gradients"].append(copy.deepcopy([k.grad.numpy() for k in list(rrn.parameters())]))
 
     print("**** iteration {} ****".format(ind))
     print(loss.item())
