@@ -29,14 +29,18 @@ def IntLoop(times):
         dys.append(C.dot(hidden_state[ind])*dt + proj_C.dot(dW[ind]))
     return hidden_state, external_signal, dys
 
-def integrate(params, total_time=1, int_step=1e-1, itraj=1, exp_path="",**kwargs):
+def integrate(params, periods=10,ppp=500,  itraj=1, exp_path="",**kwargs):
     global dt, proj_C, A, XiCov, C, dW, params_force, signal_coeff
-    dt = int_step
+    gamma, omega, n, eta, kappa, params_force = params
+
+    period = (2*np.pi/omega)
+    total_time = period*periods
+    dt = period/ppp
+    times = np.arange(0.,total_time+dt,dt)
+
     #### generate long trajectory of noises
     np.random.seed(itraj)
-    times = np.arange(0.,total_time+dt,dt)
     dW = np.sqrt(dt)*np.random.randn(len(times),2)
-    gamma, omega, n, eta, kappa, params_force = params
 
     A = np.array([[-gamma/2, omega],[-omega, -gamma/2]])
     proj_C = np.array([[1.,0.],[0.,0.]])
@@ -51,7 +55,7 @@ def integrate(params, total_time=1, int_step=1e-1, itraj=1, exp_path="",**kwargs
 
     hidden_state, external_signal, dys = IntLoop(times)
 
-    path = get_def_path() + exp_path + "{}itraj/T_{}_dt_{}/".format(itraj, total_time, dt)
+    path = get_def_path() + exp_path + "{}itraj/periods_{}_ppp_{}/".format(itraj, periods, ppp)
     os.makedirs(path, exist_ok=True)
 
     if len(times)>1e8:
@@ -82,13 +86,10 @@ if __name__ == "__main__":
 
     ####
     gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
-    period = (2*np.pi/omega)
-    total_time = period*periods
-    dt = period/ppp
 
     integrate(params=params[:-1],
-              total_time = total_time,
-              int_step = dt,
+              periods= periods,
+              ppp=ppp,
               itraj=itraj,
               exp_path = exp_path)
 
