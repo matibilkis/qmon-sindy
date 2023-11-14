@@ -6,22 +6,12 @@ import socket
 
 def get_def_path(what="trajectories"):
     user = getpass.getuser()
-    
-    if user in ["cooper-cooper","mbilkis"]:
-        uu = socket.gethostname()
-        print(uu)
-		if uu == "pop-os":
-            os.makedirs("/home/{}/qmon_sindy/{}/".format(user,what), exist_ok=True)
-            defpath = '/home/{}/qmon_sindy/{}/'.format(user,what)
-        else:
-            defpath = "/data/uab-giq/scratch2/matias/qmon_sindy/{}/".format(what)
-            os.makedirs(defpath,exist_ok=True)
-	elif (user =="matias") or (user == "mati"):
-        defpath = '../qmon_sindy/{}/'.format(what)
-    elif (user=="giq"):
-        defpath = "/media/giq/Nuevo vol/qmon_sindy/{}/".format(what)
+    uu = socket.gethostname()
+    if uu in ["pop-os"]:
+        defpath = "/home/{}/qmon_sindy/{}/".format(user,what)
     else:
-        raise NameError("check this out")
+        defpath = "/data/uab-giq/scratch2/matias/qmon_sindy/{}/".format(what)
+    os.makedirs(defpath,exist_ok=True)
     return defpath
 
 
