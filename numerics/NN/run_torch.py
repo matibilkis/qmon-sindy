@@ -10,66 +10,75 @@ from numerics.NN.models import *
 from numerics.NN.losses import *
 from numerics.NN.misc import *
 import copy
+import argparse
 
 
-x = load_data(itraj=1, what="hidden_state.npy")
-dy = load_data(itraj=1,what="dys.npy")
-f = load_data(itraj=1, what="external_signal.npy")
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--itraj", type=int, default=1)
+    args = parser.parse_args()
+    itraj = args.itraj ###this determines the seed
 
 
-####
-params, exp_path = give_params()
-gamma, omega, n, eta, kappa, b, [periods, ppp] = params
-period = (2*np.pi/omega)
-total_time = period*periods
-dt = period/ppp
-times = np.arange(0,total_time+dt,dt)
-###
-
-inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], [150., -1.]]
+    x = load_data(itraj=itraj, what="hidden_state.npy")
+    dy = load_data(itraj=itraj,what="dys.npy")
+    f = load_data(itraj=itraj, what="external_signal.npy")
 
 
-torch.manual_seed(0)
+    ####
+    params, exp_path = give_params()
+    gamma, omega, n, eta, kappa, b, [periods, ppp] = params
+    period = (2*np.pi/omega)
+    total_time = period*periods
+    dt = period/ppp
+    times = np.arange(0,total_time+dt,dt)
+    ###
 
-dev = torch.device("cpu")
-rrn = RecurrentNetwork(inputs_cell)
-
-optimizer = torch.optim.Adam(list(rrn.parameters()), lr=1e-2)
-
-dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
-
-xs_hat, dys_hat, fs_hats = rrn(dys)
-loss = log_lik(dys, dys_hat)
-history = {}
-history["losses"] = [ [loss.item(),err_f(f[:,1],fs_hats)]  ]
-history["params"] = [[k.detach().data for k in list(rrn.parameters())]]
-history["gradients"] = []
+    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], [195., -1.5]]
 
 
-print(loss.item())
-print(err_f(f[:,1],fs_hats))
-print(history["params"][-1])
-print("\n")
+    torch.manual_seed(0)
 
-for ind in tqdm(range(2000)):
+    dev = torch.device("cpu")
+    rrn = RecurrentNetwork(inputs_cell)
+
+    optimizer = torch.optim.Adam(list(rrn.parameters()), lr=1e-2)
+
+    dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
+
     xs_hat, dys_hat, fs_hats = rrn(dys)
-    loss = log_lik(dys, dys_hat, dt=dt)
-    loss.backward()
-    signal_distance = err_f(f[:,1],fs_hats)
-    optimizer.step()
+    loss = log_lik(dys, dys_hat)
+    history = {}
+    history["losses"] = [ [loss.item(),err_f(f[:,1],fs_hats)]  ]
+    history["params"] = [[k.detach().data for k in list(rrn.parameters())]]
+    history["gradients"] = []
 
 
-    history["losses"].append([loss.item(),signal_distance] )
-    history["params"].append([k.detach().data for k in copy.deepcopy(list(rrn.parameters()))])
-    history["gradients"].append(copy.deepcopy([k.grad.numpy() for k in list(rrn.parameters())]))
-
-    print("**** iteration {} ****".format(ind))
     print(loss.item())
-    print(signal_distance)
+    print(err_f(f[:,1],fs_hats))
     print(history["params"][-1])
     print("\n")
-    optimizer.zero_grad()
-    save_history(history, exp_path=exp_path,what="exp_dec_2_params")
 
-    if np.abs(loss.item()) < 1+1e-5:
-        break
+    for ind in range(2000):
+        xs_hat, dys_hat, fs_hats = rrn(dys)
+        loss = log_lik(dys, dys_hat, dt=dt)
+        loss.backward()
+        signal_distance = err_f(f[:,1],fs_hats)
+        optimizer.step()
+
+
+        history["losses"].append([loss.item(),signal_distance] )
+        history["params"].append([k.detach().data for k in copy.deepcopy(list(rrn.parameters()))])
+        history["gradients"].append(copy.deepcopy([k.grad.numpy() for k in list(rrn.parameters())]))
+
+        print("**** iteration {} ****".format(ind))
+        print(loss.item())
+        print(signal_distance)
+        print(history["params"][-1])
+        print("\n")
+        optimizer.zero_grad()
+        save_history(history, itraj=itraj, exp_path=exp_path,what="exp_dec_2_params")
+
+        if np.abs(loss.item()) < 1+1e-5:
+            break

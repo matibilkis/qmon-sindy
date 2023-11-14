@@ -6,7 +6,7 @@ import pickle
 import torch
 
 def give_path_model(what="NN",exp_path="",itraj=1, periods=10., ppp=500):
-    return get_def_path(what=what)+exp_path + "{}itraj/".format(1)
+    return get_def_path(what=what)+exp_path + "{}itraj/".format(itraj)
 
 def save_history(history,what="NN",exp_path="", itraj=1, periods=10., ppp=500):
 

@@ -1,0 +1,11 @@
+executable=HPC/subash_traj_NN.sh
+
+output = ../jobs/outs/NNtraj$(Item).out
+error = ../jobs/errs/NNtraj$(Item).err
+log = ../jobs/logs/NNtraj$(Item).log
+request_cpus = 8
+request_memory = 2 GB
++flavour="short"
+
+args=$(Item)
+queue from seq 1 8 8|
