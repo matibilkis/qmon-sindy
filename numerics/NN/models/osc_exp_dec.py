@@ -5,6 +5,7 @@ import sys
 sys.path.insert(0, os.getcwd())
 from scipy.linalg import solve_continuous_are
 
+
 class GRNN(torch.nn.Module):
     def __init__(self,inputs_cell):
         super(GRNN, self).__init__()
@@ -20,7 +21,8 @@ class GRNN(torch.nn.Module):
         self.proj_C = torch.tensor(data=[[1.,0.],[0.,0.]], dtype=torch.float32).detach()
         self.C = np.sqrt(4*eta*kappa)*self.proj_C.detach()
         self.D = (gamma*(n+0.5) + kappa)*torch.eye(2).detach()
-
+        
+        self.proj_F = torch.tensor(data=[[[0,0],[1,0]]], dtype=torch.float32).detach() # the first component of f is the HMM,that enters as a force in the second component of x
 
 
     def forward(self, dy, state, f):
@@ -37,10 +39,11 @@ class GRNN(torch.nn.Module):
         xicov = cov.matmul(self.C.T)
         dx = (self.A - xicov.matmul(self.C)).matmul(x)*self.dt + xicov.matmul(dy)
 
-        df = self.kernel_params[0]*f*self.dt # +   self.dt*self.kernel_params[1]*f**2
+        df = torch.squeeze(self.kernel_params).matmul(f)*self.dt # +   self.dt*self.kernel_params[1]*f**2
 
         fnew = f + df
-        dx += fnew*self.dt
+
+        dx += torch.squeeze(self.proj_F).matmul(fnew)*self.dt
         dcov = self.dt*(cov.matmul(self.A.T) + (self.A).matmul(cov) + self.D - (xicov.matmul(xicov.T)))
         ncov = cov+dcov
         nstate = torch.concatenate([(x + dx), torch.tensor([ncov[0,0],ncov[1,1],ncov[1,0]]), torch.tensor([t+self.dt])])
@@ -69,7 +72,6 @@ class RecurrentNetwork(torch.nn.Module):
         t0=0.
         xs_hat = [torch.tensor([0., 0., Cov[0,0], Cov[1,1],Cov[1,0], t0], dtype=torch.float32)]
 
-        #fs_hat = #[torch.self.amplitude_force0]
         fs_hat = [self.initial_state]
 
         x_hat = xs_hat[0]
