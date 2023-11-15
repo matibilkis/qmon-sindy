@@ -17,11 +17,13 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--itraj", type=int, default=1)
+    parser.add_argument("--printing", type=int, default=0)
     
     args = parser.parse_args()
     itraj = args.itraj ###this determines the seed
     mode="exp-dec"
-    printing=False
+    printing=args.printing
+    printing=[False,True][printing]
     start = time.time()
     
     x = load_data(itraj=itraj, what="hidden_state.npy", mode=mode)
