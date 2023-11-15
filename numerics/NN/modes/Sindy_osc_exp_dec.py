@@ -6,7 +6,7 @@ from numerics.utilities.misc import *
 import torch
 from tqdm import tqdm
 from scipy.linalg import solve_continuous_are
-from numerics.NN.models.osc_exp_dec import *
+from numerics.NN.models.sindy_osc_exp_dec import *
 from numerics.NN.losses import *
 from numerics.NN.misc import *
 import copy
@@ -45,11 +45,15 @@ if __name__ == "__main__":
 
     dev = torch.device("cpu")
 
-    gf = .4
-    wf=4.
-    f0=200.
-    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], [[f0,0.], [[-gf,wf],[-wf,-gf]]  ]]
+    K0 = [-.01,.01]
 
+    gf = .1
+    wf=.7
+    K1 = np.array([[-gf,wf],[-wf,-gf]])
+
+    K2_0 = K2_1 = 0.1*K1
+
+    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], [[200.,0], K0, K1, K2_0,K2_1  ]]
     rrn = RecurrentNetwork(inputs_cell)
 
     optimizer = torch.optim.Adam(list(rrn.parameters()), lr=1e-2)
@@ -90,7 +94,7 @@ if __name__ == "__main__":
             print(history["params"][-1])
             print("\n")
         optimizer.zero_grad()
-        save_history(history, itraj=itraj, exp_path=exp_path,what="osc-dec-exp_Agw")
+        save_history(history, itraj=itraj, exp_path=exp_path,what="osc-dec-sindy")
 
         if (np.abs(loss.item()) < 1+1e-7) or (time.time() - start > 1.95*3600):
             break
