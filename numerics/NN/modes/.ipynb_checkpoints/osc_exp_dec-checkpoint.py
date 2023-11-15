@@ -45,8 +45,8 @@ if __name__ == "__main__":
 
     gf = .4
     wf=4.
-    f0=220.
-    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], [[f0,20.], [[-gf,wf],[-wf,-gf]]  ]]
+    f0=200.
+    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], [[f0,0.], [[-gf,wf],[-wf,-gf]]  ]]
     
     rrn = RecurrentNetwork(inputs_cell)
 

@@ -6,27 +6,27 @@ from numerics.utilities.misc import *
 import torch
 from tqdm import tqdm
 from scipy.linalg import solve_continuous_are
-from numerics.NN.models import *
+from numerics.NN.models.exp_dec import *
 from numerics.NN.losses import *
 from numerics.NN.misc import *
 import copy
 import argparse
-
+import time
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--itraj", type=int, default=1)
-    parser.add_argument("--mode", type=str, default="exp-dec")
     
     args = parser.parse_args()
     itraj = args.itraj ###this determines the seed
-    mode=args.mode
+    mode="exp-dec"
     printing=False
+    start = time.time()
     
-    x = load_data(itraj=itraj, what="hidden_state.npy")
-    dy = load_data(itraj=itraj,what="dys.npy")
-    f = load_data(itraj=itraj, what="external_signal.npy")
+    x = load_data(itraj=itraj, what="hidden_state.npy", mode=mode)
+    dy = load_data(itraj=itraj,what="dys.npy", mode=mode)
+    f = load_data(itraj=itraj, what="external_signal.npy", mode=mode)
 
 
     ####
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     times = np.arange(0,total_time+dt,dt)
     ###
 
-    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], [195., -1.5]]
+    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], [199., -1.1]]
 
 
     torch.manual_seed(0)
@@ -86,5 +86,5 @@ if __name__ == "__main__":
         optimizer.zero_grad()
         save_history(history, itraj=itraj, exp_path=exp_path,what="exp_dec_2_params")
 
-        if np.abs(loss.item()) < 1+1e-7:
+        if (np.abs(loss.item()) < 1+1e-7) or (time.time() - start > 1.95*3600):
             break

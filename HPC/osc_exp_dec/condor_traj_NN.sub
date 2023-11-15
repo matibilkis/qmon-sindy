@@ -4,7 +4,7 @@ output = ../jobs/outs/osc_exp_dec$(Item).out
 error = ../jobs/errs/osc_exp_dec$(Item).err
 log = ../jobs/logs/osc_exp_dec$(Item).log
 request_cpus = 8
-request_memory = 2 GB
+request_memory = 4 GB
 +flavour="short"
 
 args=$(Item)
