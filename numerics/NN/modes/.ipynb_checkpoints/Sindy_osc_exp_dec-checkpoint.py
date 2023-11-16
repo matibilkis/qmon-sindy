@@ -66,6 +66,8 @@ if __name__ == "__main__":
     history["losses"] = [ [loss.item(),err_f(f[:,0],fs_hats[:,0])]  ]
     history["params"] = [[k.detach().data for k in list(rrn.parameters())]]
     history["gradients"] = []
+    history["optimizer"] = optimizer.state_dict()
+    
 
     if printing==True:
 
@@ -74,7 +76,7 @@ if __name__ == "__main__":
         print(history["params"][-1])
         print("\n")
 
-    for ind in range(3000):
+    for ind in range(int(1e5)):
         xs_hat, dys_hat, fs_hats = rrn(dys)
         loss = log_lik(dys, dys_hat, dt=dt)
         loss.backward()
@@ -85,7 +87,7 @@ if __name__ == "__main__":
         history["losses"].append([loss.item(),signal_distance] )
         history["params"].append([k.detach().data for k in copy.deepcopy(list(rrn.parameters()))])
         history["gradients"].append(copy.deepcopy([k.grad.numpy() for k in list(rrn.parameters())]))
-
+        history["optimizer"] = optimizer.state_dict()
         if printing==True:
 
             print("**** iteration {} ****".format(ind))
