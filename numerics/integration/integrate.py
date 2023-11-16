@@ -84,7 +84,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     itraj = args.itraj ###this determines the seed
-    params, exp_path = give_params(mode="exp-dec")
+    params, exp_path = give_params(mode="normal")
 
     ####
     gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
