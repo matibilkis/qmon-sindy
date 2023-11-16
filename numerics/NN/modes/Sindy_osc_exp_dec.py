@@ -78,7 +78,7 @@ if __name__ == "__main__":
         print(history["params"][-1])
         print("\n")
 
-    for ind in range(int(1e5)):
+    for ind in range(int(1e7)):
         xs_hat, dys_hat, fs_hats = rrn(dys)
         loss, loss_terms = log_lik(dys, dys_hat, dt=dt, alpha=alpha, model=rrn)
         loss.backward()
@@ -100,5 +100,5 @@ if __name__ == "__main__":
         optimizer.zero_grad()
         save_history(history, itraj=itraj, exp_path=exp_path,what="osc-dec-sindy/regularizers/{}".format(alpha))
 
-        if (np.abs(loss.item()) < 1+1e-7) or (time.time() - start > 7.95*3600):
+        if (np.abs(loss.item()) < 1+1e-7) or (time.time() - start > 47.9*3600):
             break
