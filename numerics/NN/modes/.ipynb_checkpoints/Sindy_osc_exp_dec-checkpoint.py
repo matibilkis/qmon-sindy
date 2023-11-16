@@ -21,12 +21,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--itraj", type=int, default=1)
     parser.add_argument("--printing", type=int, default=0)
+    parser.add_argument("--alpha", type=float, default=0.0)
+    
     args = parser.parse_args()
 
     printing=args.printing
     printing=[False,True][printing]
     itraj = args.itraj ###this determines the seed
-
+    alpha = args.alpha
     torch.manual_seed(0)
 
 
@@ -61,7 +63,7 @@ if __name__ == "__main__":
     dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
 
     xs_hat, dys_hat, fs_hats = rrn(dys)
-    loss = log_lik(dys, dys_hat)
+    loss, loss_terms = log_lik(dys, dys_hat, model=rrn, alpha=alpha, dt=dt)
     history = {}
     history["losses"] = [ [loss.item(),err_f(f[:,0],fs_hats[:,0])]  ]
     history["params"] = [[k.detach().data for k in list(rrn.parameters())]]
@@ -78,25 +80,25 @@ if __name__ == "__main__":
 
     for ind in range(int(1e5)):
         xs_hat, dys_hat, fs_hats = rrn(dys)
-        loss = log_lik(dys, dys_hat, dt=dt)
+        loss, loss_terms = log_lik(dys, dys_hat, dt=dt, alpha=alpha, model=rrn)
         loss.backward()
         signal_distance = err_f(f[:,0],fs_hats[:,0])
         optimizer.step()
 
 
-        history["losses"].append([loss.item(),signal_distance] )
+        history["losses"].append([loss.item(),loss_terms,signal_distance] )
         history["params"].append([k.detach().data for k in copy.deepcopy(list(rrn.parameters()))])
         history["gradients"].append(copy.deepcopy([k.grad.numpy() for k in list(rrn.parameters())]))
         history["optimizer"] = optimizer.state_dict()
         if printing==True:
 
             print("**** iteration {} ****".format(ind))
-            print(loss.item())
+            print(loss.item(), loss_terms)
             print(signal_distance)
             print(history["params"][-1])
             print("\n")
         optimizer.zero_grad()
-        save_history(history, itraj=itraj, exp_path=exp_path,what="osc-dec-sindy")
+        save_history(history, itraj=itraj, exp_path=exp_path,what="osc-dec-sindy/regularizers/{}".format(alpha))
 
         if (np.abs(loss.item()) < 1+1e-7) or (time.time() - start > 7.95*3600):
             break
