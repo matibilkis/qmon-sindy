@@ -46,7 +46,7 @@ if __name__ == "__main__":
     ###
 
 
-    a,b,I,tau = np.array(params_force[1]) + np.random.randn((len(params_force[1])))*np.min(np.abs(params_force[1]))
+    a,b,I,tau, delay, zoom = np.array(params_force[1]) + np.random.randn((len(params_force[1])))*np.min(np.abs(params_force[1]))
     dev = torch.device("cpu")
     K0 = [I, a/tau]
 
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     K3 = np.array([[-1/3,0],[0,0]])
 
-    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], [params_force[0], K0, K1, K3  ]]
+    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [params_force[0], K0, K1, K3  ]]
     rrn = RecurrentNetwork(inputs_cell)
 
     optimizer = torch.optim.Adam(list(rrn.parameters()), lr=1e-2)

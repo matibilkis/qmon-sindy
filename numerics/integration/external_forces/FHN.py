@@ -36,9 +36,7 @@ def IntLoop(times):
 def integrate(params, periods=10,ppp=500,  itraj=1, exp_path="",**kwargs):
     global dt, proj_C, A, XiCov, C, dW, params_force, signal_coeff_hidden,fhidden, a,b,I,tau, delay, zoom_f
     gamma, omega, n, eta, kappa, params_force = params
-    a,b,I,tau = params_force[1]
-    delay=15.
-    zoom_f = 100.#3000
+    a,b,I,tau,delay,zoom_f = params_force[1]
     fhidden = params_force[0] #i look at the first component of fhidden, but dx = A-() *dt + fdt, with (0, f) and x=(x,p), so it's a force
 
     period = (2*np.pi/omega)

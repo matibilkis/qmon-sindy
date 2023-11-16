@@ -26,10 +26,16 @@ def give_params(periods=10., ppp=500, mode="exp-dec"):
     elif mode =="osc-exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [[200.,0.], [-.5, 5.]] ##antes kappa = 0.8
     elif mode =="FHN":
-        a,b = .7, 1.6
+        ######broken_heart#
+        #### a,b = .7, 1.6
+        #### tau = 12.5
+        ##### I = ((a-1.14)/b + 2/3 )
+        ###heart
+        a,b = .7, .8
         tau = 12.5
-        I = ((a-1.14)/b + 2/3 )
-        gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [[.8, 1.], [a,b,I,tau]] ##antes kappa = 0.8
+        I = .5#((a-1.14)/b + 2/3 )
+        delay, zoom = 50., 100.
+        gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [[.8, 1.], [a,b,I,tau, delay, zoom]] ##antes kappa = 0.8
     else:
         raise NameError("define force!")
     params_force.append(mode)

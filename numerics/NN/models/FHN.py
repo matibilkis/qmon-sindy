@@ -12,8 +12,8 @@ class GRNN(torch.nn.Module):
 
         self.dt, self.simulation_params, trainable_params = inputs_cell
         K0, K1, K3= trainable_params[1:]
-        gamma, omega, n, eta, kappa, b = self.simulation_params
-
+        gamma, omega, n, eta, kappa, params_force = self.simulation_params
+        a,b,I,tau,self.delay,zoom_f = params_force[1]
         ep_in = 0.01
         self.K0 = torch.nn.Parameter(data = torch.tensor(K0,dtype=torch.float32,
                                                               requires_grad=True))
@@ -34,9 +34,7 @@ class GRNN(torch.nn.Module):
         self.C = np.sqrt(4*eta*kappa)*self.proj_C.detach()
         self.D = (gamma*(n+0.5) + kappa)*torch.eye(2).detach()
 
-        zoom=100.
-        self.proj_F = zoom*torch.tensor(data=[[[0,0],[1,0]]], dtype=torch.float32).detach() # the first component of f is the HMM,that enters as a force in the second component of x
-        self.delay = 15.
+        self.proj_F = zoom_f*torch.tensor(data=[[[0,0],[1,0]]], dtype=torch.float32).detach() # the first component of f is the HMM,that enters as a force in the second component of x
 
     def forward(self, dy, state, f):
         """
