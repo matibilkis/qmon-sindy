@@ -34,7 +34,7 @@ def give_params(periods=10., ppp=500, mode="exp-dec"):
         a,b = .7, .8
         tau = 12.5
         I = .5#((a-1.14)/b + 2/3 )
-        delay, zoom = 50., 100.
+        delay, zoom = 50., 10.
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [[.8, 1.], [a,b,I,tau, delay, zoom]] ##antes kappa = 0.8
     else:
         raise NameError("define force!")
