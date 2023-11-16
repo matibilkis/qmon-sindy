@@ -11,12 +11,14 @@ class GRNN(torch.nn.Module):
         super(GRNN, self).__init__()
 
         self.dt, self.simulation_params, trainable_params = inputs_cell
-        K0, K1, K2_0, K2_1 = trainable_params[1:]
+        #K0, K1, K2_0, K2_1 = trainable_params[1:]
+        K1, K2_0, K2_1 = trainable_params[1:]
+
         gamma, omega, n, eta, kappa, b = self.simulation_params
 
         ep_in = 0.01
-        self.kernel_params_0 = torch.nn.Parameter(data = torch.tensor(K0,dtype=torch.float32,
-                                                              requires_grad=True))
+        #self.kernel_params_0 = torch.nn.Parameter(data = torch.tensor(K0,dtype=torch.float32,
+    #                                                          requires_grad=True))
 
         self.kernel_params_1 = torch.nn.Parameter(data = torch.tensor(K1,dtype=torch.float32,
                                                               requires_grad=True))
@@ -48,12 +50,12 @@ class GRNN(torch.nn.Module):
         xicov = cov.matmul(self.C.T)
         dx = (self.A - xicov.matmul(self.C)).matmul(x)*self.dt + xicov.matmul(dy)
 
-        df_0 = torch.squeeze(self.kernel_params_0)*self.dt
+        #df_0 = torch.squeeze(self.kernel_params_0)*self.dt
         df_1 = torch.squeeze(self.kernel_params_1).matmul(f)*self.dt
         df_2_0 = torch.squeeze(self.kernel_params_2_0).matmul(f**2)*self.dt
         df_2_1 = torch.squeeze(self.kernel_params_2_1).matmul(f*torch.flip(f,[-1]))*self.dt
 
-        fnew = f + df_0 + df_1 + df_2_0 + df_2_1
+        fnew = f +  df_1 + df_2_0 + df_2_1#df_0 +
 
         dx += torch.squeeze(self.proj_F).matmul(fnew)*self.dt
         dcov = self.dt*(cov.matmul(self.A.T) + (self.A).matmul(cov) + self.D - (xicov.matmul(xicov.T)))
