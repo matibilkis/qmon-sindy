@@ -15,7 +15,7 @@ import time
 
 if __name__ == "__main__":
 
-    mode="osc-exp-dec"
+    mode="FHN"
 
     start = time.time()
     parser = argparse.ArgumentParser(add_help=False)
@@ -57,17 +57,17 @@ if __name__ == "__main__":
     inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [params_force[0], K0, K1, K3  ]]
     rrn = RecurrentNetwork(inputs_cell)
 
-    optimizer = torch.optim.Adam(list(rrn.parameters()), lr=1e-2)
+    optimizer = torch.optim.Adam(list(rrn.parameters()), lr=1e-4)
 
     dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
 
     xs_hat, dys_hat, fs_hats = rrn(dys)
     loss, loss_terms = log_lik(dys, dys_hat, model=rrn, alpha=alpha, dt=dt)
     history = {}
-    history["losses"] = [ [loss.item(),err_f(f[:,0],fs_hats[:,0])]  ]
+    history["losses"] = [ [loss.item(),loss_terms, err_f(f[:,0],fs_hats[:,0])]  ]
     history["params"] = [[k.detach().data for k in list(rrn.parameters())]]
     history["gradients"] = []
-    history["optimizer"] = optimizer.state_dict()
+    history["optimizer"] = [optimizer.state_dict()]
 
 
     if printing==True:
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         history["losses"].append([loss.item(),loss_terms,signal_distance] )
         history["params"].append([k.detach().data for k in copy.deepcopy(list(rrn.parameters()))])
         history["gradients"].append(copy.deepcopy([k.grad.numpy() for k in list(rrn.parameters())]))
-        history["optimizer"] = optimizer.state_dict()
+        history["optimizer"].append(optimizer.state_dict())
         if printing==True:
 
             print("**** iteration {} ****".format(ind))
@@ -97,7 +97,7 @@ if __name__ == "__main__":
             print(history["params"][-1])
             print("\n")
         optimizer.zero_grad()
-        save_history(history, itraj=itraj, exp_path=exp_path,what="osc-dec-sindy/regularizers/{}".format(alpha))
+        save_history(history, itraj=itraj, exp_path=exp_path,what="FHN/regularizers/{}".format(alpha))
 
         if (np.abs(loss.item()) < 1+1e-7) or (time.time() - start > 47.9*3600):
             break

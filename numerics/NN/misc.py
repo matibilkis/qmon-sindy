@@ -24,7 +24,9 @@ def load_history(what="NN",exp_path="",itraj=1, periods=10., ppp=500):
     return h
 
 def set_params_to_best(rrn, history):
-    index_favorite = np.argmin(np.array(history["losses"])[:,0])
+    ll = history["losses"]
+    loss_fun = np.array([ll[k][0] for k in range(len(ll))])
+    index_favorite = np.argmin(loss_fun)
     news = history["params"][index_favorite]
     with torch.no_grad():
 
