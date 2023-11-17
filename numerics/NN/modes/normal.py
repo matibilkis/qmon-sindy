@@ -18,13 +18,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--itraj", type=int, default=1)
     parser.add_argument("--printing", type=int, default=0)
-
     args = parser.parse_args()
     itraj = args.itraj ###this determines the seed
     mode="normal"
     printing=args.printing
     printing=[False,True][printing]
     start = time.time()
+    np.random.seed(itraj)
 
     x = load_data(itraj=itraj, what="hidden_state.npy", mode=mode)
     dy = load_data(itraj=itraj,what="dys.npy", mode=mode)
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     times = np.arange(0,total_time+dt,dt)
     ###
 
-    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], 0.9*omega]
+    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, b], omega + np.random.randn()*0.05*omega]
 
 
     torch.manual_seed(0)
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         print(history["params"][-1])
         print("\n")
 
-    for ind in range(3000):
+    for ind in range(50):
         xs_hat, dys_hat = rrn(dys)
         loss = log_lik(dys, dys_hat, dt=dt)
         loss.backward()
