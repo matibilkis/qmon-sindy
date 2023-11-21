@@ -51,10 +51,10 @@ if __name__ == "__main__":
     K0 = [I, a/tau]
 
     K1 = np.array([[1,-1],[1/tau,-b/tau]])
-
+    K2 = K1.copy()
     K3 = np.array([[-1/3,0],[0,0]])
 
-    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [params_force[0], K0, K1, K3  ]]
+    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [params_force[0], K0, K1, K2, K3  ]]
     rrn = RecurrentNetwork(inputs_cell)
 
     optimizer = torch.optim.Adam(list(rrn.parameters()), lr=1e-4)
@@ -97,7 +97,7 @@ if __name__ == "__main__":
             print(history["params"][-1])
             print("\n")
         optimizer.zero_grad()
-        save_history(history, itraj=itraj, exp_path=exp_path,what="FHN/regularizers/{}".format(alpha))
+        save_history(history, itraj=itraj, exp_path=exp_path,what="FHN_0123/regularizers/{}".format(alpha))
 
         if (np.abs(loss.item()) < 1+1e-7) or (time.time() - start > 47.9*3600):
             break

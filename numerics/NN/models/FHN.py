@@ -11,7 +11,7 @@ class GRNN(torch.nn.Module):
         super(GRNN, self).__init__()
 
         self.dt, self.simulation_params, trainable_params = inputs_cell
-        K0, K1, K3= trainable_params[1:]
+        K0, K1,K2, K3= trainable_params[1:]
         gamma, omega, n, eta, kappa, params_force = self.simulation_params
         a,b,I,tau,self.delay,zoom_f = params_force[1]
         ep_in = 0.01
@@ -20,9 +20,20 @@ class GRNN(torch.nn.Module):
 
         self.K1 = torch.nn.Parameter(data = torch.tensor(K1,dtype=torch.float32,
                                                               requires_grad=True))
+        
+        self.K2 = torch.nn.Parameter(data = torch.tensor(K2,dtype=torch.float32,
+                                                      requires_grad=True))
+        
+        self.K2_cross = torch.nn.Parameter(data = torch.tensor(K2,dtype=torch.float32,
+                                              requires_grad=True))
 
         self.K3 = torch.nn.Parameter(data = torch.tensor(K3,dtype=torch.float32,
                                                               requires_grad=True))
+
+        self.K3_12 = torch.nn.Parameter(data = torch.tensor(K3,dtype=torch.float32,
+                                                              requires_grad=True))
+        self.K3_21 = torch.nn.Parameter(data = torch.tensor(K3,dtype=torch.float32,
+                                                                      requires_grad=True))
 
         # self.kernel_params_2_0 = torch.nn.Parameter(data = torch.tensor(K2_0,dtype=torch.float32,
         #                                               requires_grad=True))
@@ -52,11 +63,14 @@ class GRNN(torch.nn.Module):
 
         df_0 = torch.squeeze(self.K0)*self.dt
         df_1 = torch.squeeze(self.K1).matmul(f)*self.dt
-        #df_2_0 = torch.squeeze(self.kernel_params_2_0).matmul(f**2)*self.dt
-        #df_2_1 = torch.squeeze(self.kernel_params_2_1).matmul(f*torch.flip(f,[-1]))*self.dt
-        df_3 = torch.squeeze(self.K3).matmul(f**3)*self.dt
-
-        fnew = f + self.delay*(df_0 + df_1 + df_3)
+        df_2_0 = torch.squeeze(self.K2).matmul(f**2)*self.dt
+        df_2_1 = torch.squeeze(self.K2_cross).matmul(f*torch.flip(f,[-1]))*self.dt
+        
+        df_3_0 = torch.squeeze(self.K3).matmul(f**3)*self.dt
+        df_3_1 = torch.squeeze(self.K3_12).matmul(f*torch.flip(f**2,[-1]))*self.dt
+        df_3_2 = torch.squeeze(self.K3_21).matmul(f**2*torch.flip(f,[-1]))*self.dt
+        
+        fnew = f + self.delay*(df_0 + df_1 + df_2_0 + df_2_1 + df_3_0 + df_3_1 + df_3_2)
 
         dx += torch.squeeze(self.proj_F).matmul(fnew)*self.dt
         dcov = self.dt*(cov.matmul(self.A.T) + (self.A).matmul(cov) + self.D - (xicov.matmul(xicov.T)))
