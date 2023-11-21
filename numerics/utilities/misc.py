@@ -15,7 +15,7 @@ def get_def_path(what="trajectories"):
     return defpath
 
 
-def give_params(periods=10., ppp=500, mode="exp-dec"):
+def give_params(periods=500., ppp=50, mode="exp-dec"):
     #kappa, gamma, omega, n, eta, b = 1., 1e-4, 1e-4, 1e-3, 1e-5, 0.
 #    gamma, omega, n, eta, kappa,b  = 15*2*np.pi, 2*np.pi*1e3, 14., 1., 360*2*np.pi, 0. ##Giulio's
 
@@ -24,7 +24,10 @@ def give_params(periods=10., ppp=500, mode="exp-dec"):
     if mode == "exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [200., 1., 0.] ##antes kappa = 0.8
     elif mode == "normal":
-        gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [0., 0., 0.] ##antes kappa = 0.8
+        # gamma, omega, n, eta, kappa, params_force = 2*np.pi*265, 2*np.pi*1.14*1e4,14.,.75, 13.5*1e4*2*np.pi, [0.]*3
+        # gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [0., 0., 0.] ##antes kappa = 0.8
+        # gamma, omega, n, eta, kappa, params_force  = 1e2, 10. , 0.01, 1. , 1, [0., 0., 0.] ##antes kappa = 0.8
+        gamma, omega, n, eta, kappa, params_force = 1e1, 1e4, 10., 1., 1e2, [0.]*3
     elif mode =="osc-exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [[200.,0.], [-.5, 5.]] ##antes kappa = 0.8
     elif mode == "giulio":

@@ -7,6 +7,28 @@ from tqdm import tqdm
 from numba import jit
 from scipy.linalg import solve_continuous_are
 import argparse
+from numerics.integration.steps import Ikpw
+
+
+@jit(nopython=True)
+def Robler_step(t, Yn, Ik, Iij, dt, f,G, d, m):
+    """
+    https://pypi.org/project/sdeint/
+    https://dl.acm.org/doi/abs/10.1007/s10543-005-0039-7
+    """
+    fnh = f(Yn, t,dt)*dt # shape (d,)
+    xicov = Gn = G()
+    sum1 = np.dot(Gn, Iij)/np.sqrt(dt) # shape (d, m)
+
+    H20 = Yn + fnh # shape (d,)
+    H20b = np.reshape(H20, (d, 1))
+    H2 = H20b + sum1 # shape (d, m)
+
+    H30 = Yn
+    H3 = H20b - sum1
+    fn1h = f(H20, t, dt)*dt
+    Yn1 = Yn + 0.5*(fnh + fn1h) + np.dot(xicov, Ik)
+    return Yn1
 
 @jit(nopython=True)
 def Euler_step_state(x, noise_vector, f):
@@ -17,14 +39,26 @@ def Euler_step_signal(f):
     #prams_foce = [omega, gamma]  linear oscillator
     return f + signal_coeff.dot(f)*dt
 
+######### ROSLER ########
+@jit(nopython=True)
+def Fhidden(s, t, dt):
+    return np.dot(A,s[:2])
+######### ROSLER ########
+@jit(nopython=True)
+def Ghidden():
+    return XiCov
+
+
 def IntLoop(times):
     N = len(times)
     hidden_state = np.zeros((N,2))
     external_signal = np.zeros((N,2))
     external_signal[0] = np.array([0.,f0])
     dys = [[0.,0.]]
+    _,I=Ikpw(dW,dt) ### ROSLER
     for ind, t in enumerate(times[:-1]):
-        hidden_state[ind+1] = Euler_step_state(hidden_state[ind], dW[ind], external_signal[ind])
+        #hidden_state[ind+1] = Euler_step_state(hidden_state[ind], dW[ind], external_signal[ind])
+        hidden_state[ind+1] = Robler_step(t, hidden_state[ind], dW[ind,:], I[ind,:,:], dt, Fhidden, Ghidden, 2, 2)
         external_signal[ind+1] = Euler_step_signal(external_signal[ind])
         dys.append(C.dot(hidden_state[ind])*dt + proj_C.dot(dW[ind]))
     return hidden_state, external_signal, dys

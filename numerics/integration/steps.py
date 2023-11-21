@@ -43,25 +43,7 @@ def Ikpw(dW, h, n=5):
     dW = dW.reshape((N, -1)) # change back to shape (N, m)
     return (A, I)
 
-@jit(nopython=True)
-def Robler_step(t, Yn, Ik, Iij, dt, f,G, d, m):
-    """
-    https://pypi.org/project/sdeint/
-    https://dl.acm.org/doi/abs/10.1007/s10543-005-0039-7
-    """
-    fnh = f(Yn, t,dt)*dt # shape (d,)
-    xicov = Gn = G()
-    sum1 = np.dot(Gn, Iij)/np.sqrt(dt) # shape (d, m)
 
-    H20 = Yn + fnh # shape (d,)
-    H20b = np.reshape(H20, (d, 1))
-    H2 = H20b + sum1 # shape (d, m)
-
-    H30 = Yn
-    H3 = H20b - sum1
-    fn1h = f(H20, t, dt)*dt
-    Yn1 = Yn + 0.5*(fnh + fn1h) + np.dot(xicov, Ik)
-    return Yn1
 
 
 @jit(nopython=True)
