@@ -75,6 +75,10 @@ class GRNN(torch.nn.Module):
         dx += torch.squeeze(self.proj_F).matmul(fnew)*self.dt
         dcov = self.dt*(cov.matmul(self.A.T) + (self.A).matmul(cov) + self.D - (xicov.matmul(xicov.T)))
         ncov = cov+dcov
+        #print(x, dx)
+        #print(ncov)
+        #print(t, self.dt)
+        #print(f, fnew)
         nstate = torch.concatenate([(x + dx), torch.tensor([ncov[0,0],ncov[1,1],ncov[1,0]]), torch.tensor([t+self.dt])])
         dy_hat = self.C.matmul(x)*self.dt
         return nstate, dy_hat, fnew

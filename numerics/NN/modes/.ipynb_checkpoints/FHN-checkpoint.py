@@ -46,18 +46,31 @@ if __name__ == "__main__":
     ###
 
 
-    a,b,I,tau, delay, zoom = np.array(params_force[1]) + np.random.randn((len(params_force[1])))*np.min(np.abs(params_force[1]))
+    a,b,I,tau, delay, zoom = np.array(params_force[1])
     dev = torch.device("cpu")
-    K0 = [I, a/tau]
-
+    K0 = np.array([I, a/tau])
     K1 = np.array([[1,-1],[1/tau,-b/tau]])
     K2 = K1.copy()
     K3 = np.array([[-1/3,0],[0,0]])
-
-    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [params_force[0], K0, K1, K2, K3  ]]
+    
+    noise_level = 0.01  
+    K0 = K0 + np.random.uniform(size=K0.shape)*noise_level
+    K1 = K1 + np.random.uniform(size=K1.shape)*noise_level
+    K2 = K2 + np.random.uniform(size=K2.shape)*noise_level
+    K3 = K3 + np.random.uniform(size=K3.shape)*noise_level
+    initial_condition = np.array(params_force[0])
+    initial_condition+=np.random.uniform(size=initial_condition.shape)*noise_level
+    
+    initial_condition=list(initial_condition.astype("float32"))
+    K0 = K0.astype("float32")
+    K1 = K1.astype("float32")
+    K2 = K2.astype("float32")
+    K3 = K3.astype("float32")
+    
+    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [initial_condition, K0, K1, K2, K3  ]]
     rrn = RecurrentNetwork(inputs_cell)
 
-    optimizer = torch.optim.Adam(list(rrn.parameters()), lr=1e-4)
+    optimizer = torch.optim.Adam(list(rrn.parameters()), lr=1e-2)
 
     dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
 
@@ -69,9 +82,8 @@ if __name__ == "__main__":
     history["gradients"] = []
     history["optimizer"] = [optimizer.state_dict()]
 
-
     if printing==True:
-
+        print("ind: ", 0)
         print(loss.item())
         print(err_f(f[:,0],fs_hats[:,0]))
         print(history["params"][-1])
@@ -89,8 +101,8 @@ if __name__ == "__main__":
         history["params"].append([k.detach().data for k in copy.deepcopy(list(rrn.parameters()))])
         history["gradients"].append(copy.deepcopy([k.grad.numpy() for k in list(rrn.parameters())]))
         history["optimizer"].append(optimizer.state_dict())
-        if printing==True:
-
+        if printing==True:#ind%10==0:
+            print("ind: ", ind)
             print("**** iteration {} ****".format(ind))
             print(loss.item(), loss_terms)
             print(signal_distance)
