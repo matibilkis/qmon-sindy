@@ -26,7 +26,8 @@ if __name__ == "__main__":
     start = time.time()
     np.random.seed(itraj)
 
-    x = load_data(itraj=itraj, what="hidden_state.npy", mode=mode)
+    states = load_data(itraj=itraj, what="hidden_state.npy",mode=mode)
+    x, x_th = states[:,:2], states[:,2:]
     dy = load_data(itraj=itraj,what="dys.npy", mode=mode)
 
     ####

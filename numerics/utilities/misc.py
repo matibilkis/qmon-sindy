@@ -27,7 +27,8 @@ def give_params(periods=500., ppp=50, mode="exp-dec"):
         # gamma, omega, n, eta, kappa, params_force = 2*np.pi*265, 2*np.pi*1.14*1e4,14.,.75, 13.5*1e4*2*np.pi, [0.]*3
         # gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [0., 0., 0.] ##antes kappa = 0.8
         # gamma, omega, n, eta, kappa, params_force  = 1e2, 10. , 0.01, 1. , 1, [0., 0., 0.] ##antes kappa = 0.8
-        gamma, omega, n, eta, kappa, params_force = 1e1, 1e4, 10., 1., 1e2, [0.]*3
+        #gamma, omega, n, eta, kappa, params_force = 1e1, 1e4, 10., 1., 1e2, [0.]*3
+        gamma, omega, n , eta, kappa , params_force = 1e1, 1e3, 10., 1., 1e2, [0.]*3
     elif mode =="osc-exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [[200.,0.], [-.5, 5.]] ##antes kappa = 0.8
     elif mode == "giulio":
