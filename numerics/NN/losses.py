@@ -12,7 +12,9 @@ def log_lik(dys, dys_hat, model=None,dt=1e-3, alpha=0.0):
     l0 = torch.sum((dys-dys_hat)**2)/(dt*len(dys))
     if alpha>0.0:
         params = list(model.parameters())[1:] #not initial value
-        l1 = torch.sum(torch.tensor([torch.sum(torch.abs(k)) for k in params]))
+        maxim = torch.max(torch.tensor([torch.max(j) for j in params]))
+        nparams = np.sum([len(j) for j in params])
+        l1 = torch.sum(torch.tensor([torch.sum(torch.abs(k)) for k in params]))/(nparams*maxim)
         return l0 + alpha*l1, torch.stack([l0, alpha*l1]).detach().numpy()
     else:
         return l0, None

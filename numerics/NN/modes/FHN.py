@@ -52,14 +52,14 @@ if __name__ == "__main__":
     K1 = np.array([[1,-1],[1/tau,-b/tau]])
     K2 = K1.copy()
     K3 = np.array([[-1/3,0],[0,0]])
-    
-    noise_level = 0.01  
-    K0 = K0 + np.random.uniform(size=K0.shape)*noise_level
-    K1 = K1 + np.random.uniform(size=K1.shape)*noise_level
-    K2 = K2 + np.random.uniform(size=K2.shape)*noise_level
-    K3 = K3 + np.random.uniform(size=K3.shape)*noise_level
+
+    noise_level = 0.1  
+    K0 = K0 + np.random.randn(*list(K0.shape))*np.min(K0)*noise_level#np.random.uniform(size=K0.shape)*noise_level
+    K1 = K1 + np.random.randn(*list(K1.shape))*np.min(K1)*noise_level#np.random.uniform(size=K1.shape)*noise_level
+    K2 = K2 + np.random.randn(*list(K2.shape))*np.min(K2)*noise_level#np.random.uniform(size=K2.shape)*noise_level
+    K3 = K3 + np.random.randn(*list(K3.shape))*np.min(K3)*noise_level#np.random.uniform(size=K3.shape)*noise_level
     initial_condition = np.array(params_force[0])
-    initial_condition+=np.random.uniform(size=initial_condition.shape)*noise_level
+    initial_condition+=np.random.randn(*list(initial_condition.shape))*np.min(initial_condition)*noise_level#np.random.uniform(size=initial_condition.shape)*noise_level
     
     initial_condition=list(initial_condition.astype("float32"))
     K0 = K0.astype("float32")
