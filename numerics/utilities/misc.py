@@ -16,7 +16,7 @@ def get_def_path(what="trajectories"):
     return defpath
 
 
-def give_params(periods=100., ppp=50, mode="exp-dec"):
+def give_params(periods=100., ppp=100, mode="exp-dec"):
     if mode == "exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [200., 1., 0.] ##antes kappa = 0.8
     elif mode =="osc-exp-dec":
