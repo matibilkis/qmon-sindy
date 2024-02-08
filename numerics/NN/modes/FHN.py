@@ -44,6 +44,7 @@ if __name__ == "__main__":
     dt = period/ppp
     times = np.arange(0,total_time+dt,dt)
     ###
+    print(alpha)
 
 
     a,b,I,tau, delay, zoom = np.array(params_force[1])
@@ -109,7 +110,7 @@ if __name__ == "__main__":
             print(history["params"][-1])
             print("\n")
         optimizer.zero_grad()
-        save_history(history, itraj=itraj, exp_path=exp_path,what="FHN_0123/regularizers/{}".format(alpha))
+        save_history(history, itraj=itraj, exp_path=exp_path,what="FHN/regularizers/{}".format(alpha))
 
         if (np.abs(loss.item()) < 1+1e-7) or (time.time() - start > 47.9*3600):
             break
