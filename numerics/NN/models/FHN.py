@@ -20,10 +20,10 @@ class GRNN(torch.nn.Module):
 
         self.K1 = torch.nn.Parameter(data = torch.tensor(K1,dtype=torch.float32,
                                                               requires_grad=True))
-        
+
         self.K2 = torch.nn.Parameter(data = torch.tensor(K2,dtype=torch.float32,
                                                       requires_grad=True))
-        
+
         self.K2_cross = torch.nn.Parameter(data = torch.tensor(K2,dtype=torch.float32,
                                               requires_grad=True))
 
@@ -81,7 +81,6 @@ class RecurrentNetwork(torch.nn.Module):
         super(RecurrentNetwork, self).__init__()
         self.RCell = GRNN(inputs_cell=inputs_cell)
         self.dt, self.simulation_params, trainable_params = inputs_cell
-
         self.initial_state = torch.nn.Parameter(torch.tensor(trainable_params[0]))
 
     def forward(self, dys):

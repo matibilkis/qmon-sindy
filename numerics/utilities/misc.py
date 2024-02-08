@@ -2,6 +2,7 @@ import numpy as np
 import ast
 import os
 import getpass
+import matplotlib.pyplot as plt
 import socket
 
 def get_def_path(what="trajectories"):
@@ -15,25 +16,17 @@ def get_def_path(what="trajectories"):
     return defpath
 
 
-def give_params(periods=10., ppp=500, mode="exp-dec"):
-    #kappa, gamma, omega, n, eta, b = 1., 1e-4, 1e-4, 1e-3, 1e-5, 0.
-#    gamma, omega, n, eta, kappa,b  = 15*2*np.pi, 2*np.pi*1e3, 14., 1., 360*2*np.pi, 0. ##Giulio's
-
-    ## I modify a bit the signal-noise ratio
-    #gamma, omega, n, eta, kappa, params_force  = 15*2*np.pi, 2*np.pi*1e2, 14., 1., 360*2*np.pi, [2e2, 5]   ##Giulio's
+def give_params(periods=100., ppp=50, mode="exp-dec"):
     if mode == "exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [200., 1., 0.] ##antes kappa = 0.8
     elif mode =="osc-exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [[200.,0.], [-.5, 5.]] ##antes kappa = 0.8
+    elif mode =="sin":
+        gamma, omega, n, eta, kappa, params_force  = 0.3, 1. , 10., 1.0 , 20., [[1., 0.], [0.1]] ##antes kappa = 0.8
     elif mode =="FHN":
-        ######broken_heart#
-        #### a,b = .7, 1.6
-        #### tau = 12.5
-        ##### I = ((a-1.14)/b + 2/3 )
-        ###heart
         a,b = .7, .8
         tau = 12.5
-        I = .5#((a-1.14)/b + 2/3 )
+        I = .5
         delay, zoom = 50., 10.
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [[.8, 1.], [a,b,I,tau, delay, zoom]] ##antes kappa = 0.8
     else:
@@ -54,3 +47,36 @@ def load_data(itraj = 1, what="hidden_state.npy",mode="exp-dec"):
 
     path = get_def_path()+ exp_path + "{}itraj/periods_{}_ppp_{}/".format(itraj, float(periods), ppp)
     return np.load(path+what)
+
+
+
+def plot_integration(times,x,dy,f,dire,exp_path,ss=20):
+    dire = "../quantera/sindy/exploration/"
+    os.makedirs(dire,exist_ok=True)
+
+    plt.figure(figsize=(5,15))
+    ax=plt.subplot(711)
+    ax.plot(times,x[:,0])
+    ax.set_ylabel("q",size=ss)
+    ax.tick_params(axis='y', labelcolor="blue")
+    ax = ax.twinx()
+    ax.plot(times,x[:,1], color="red")
+    ax.tick_params(axis='y', labelcolor="red")
+    ax.set_ylabel("p",size=ss)
+
+    ax=plt.subplot(712)
+    ax.plot(times,dy[:,0])
+    ax.set_ylabel(r'$dy_q$',size=ss)
+
+    ax=plt.subplot(713)
+    ax.plot(times,f[:,0])
+    ax.set_ylabel("f_q",size=ss)
+    ax.tick_params(axis='y', labelcolor="blue")
+    ax = ax.twinx()
+    ax.plot(times,f[:,1], color="red")
+    ax.tick_params(axis='y', labelcolor="red")
+    ax.set_ylabel("f_p",size=ss)
+
+    plt.savefig(dire+exp_path[:-1]+".png")
+    print(dire, exp_path)
+    return dire, exp_path

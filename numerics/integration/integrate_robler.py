@@ -186,7 +186,7 @@ if __name__ == "__main__":
     dt = args.dt
     pdt = args.pdt
     total_time = args.total_time
-    
+
     gamma0 = gamma1 = 100
     eta0 = eta1 = 1
     kappa0 = kappa1 = 1e3
