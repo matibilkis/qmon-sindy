@@ -16,13 +16,13 @@ def get_def_path(what="trajectories"):
     return defpath
 
 
-def give_params(periods=100., ppp=100, mode="exp-dec"):
+def give_params(periods=100., ppp=50, mode="exp-dec"):
     if mode == "exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [200., 1., 0.] ##antes kappa = 0.8
     elif mode =="osc-exp-dec":
-        gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [[200.,0.], [-.5, 5.]] ##antes kappa = 0.8
+        gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1 , 20., [[200.,0.], [-.5, 5.]] ##antes kappa = 0.8
     elif mode =="sin":
-        gamma, omega, n, eta, kappa, params_force  = 0.3, 1. , 10., 1.0 , 20., [[1., 0.], [0.1]] ##antes kappa = 0.8
+        gamma, omega, n, eta, kappa, params_force  = 0.3, 1. , 10., .1 , .2, [[3., 0.], [0.1]] ##antes kappa = 0.8
     elif mode =="FHN":
         a,b = .7, .8
         tau = 12.5
@@ -51,7 +51,6 @@ def load_data(itraj = 1, what="hidden_state.npy",mode="exp-dec"):
 
 
 def plot_integration(times,x,dy,f,dire,exp_path,ss=20):
-    dire = "../quantera/sindy/exploration/"
     os.makedirs(dire,exist_ok=True)
 
     plt.figure(figsize=(5,15))

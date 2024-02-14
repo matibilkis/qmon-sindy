@@ -11,6 +11,15 @@ from numerics.integration.external_forces.steps_external import *
 
 
 @jit(nopython=True)
+def Ffext(s, t, dt):
+    x_dot = np.dot(Afext,s)
+    return x_dot
+
+@jit(nopython=True)
+def Gfext():
+    return np.zeros((2,2))
+
+@jit(nopython=True)
 def Fhidden(s, t, dt):
     x = s[:2]
     x_dot = np.dot(A,x)
@@ -28,6 +37,7 @@ def Euler_step_signal(f):
     dy = -omega_f*x
     df = np.array([dx, dy])
     return f + df*dt
+
 
 @jit(nopython=True)
 def Euler_step_state(x, noise_vector, f):
@@ -49,18 +59,21 @@ def IntLoop(times):
         hidden_state[ind+1] = Robler_step(t,hidden_state[ind], dW[ind,:], I[ind,:,:], dt, Fhidden, Ghidden, d, m, proj_force.dot(external_signal[ind]))
 
         #hidden_state[ind+1] = Euler_step_state(hidden_state[ind], dW[ind], external_signal[ind])
+    #    external_signal[ind+1] = Euler_step_signal(external_signal[ind])
+        external_signal[ind+1] = Robler_step(t,external_signal[ind], dW[ind,:], I[ind,:,:], dt, Ffext, Gfext, d,m, np.array([0.,0.]))
 
-        external_signal[ind+1] = Euler_step_signal(external_signal[ind])
 
         dys.append(C.dot(hidden_state[ind])*dt + proj_C.dot(dW[ind]))
 
     return hidden_state, external_signal, dys
 
 def integrate(params, periods=10,ppp=500,  itraj=1, exp_path="",**kwargs):
-    global dt, proj_C, A, XiCov, C, dW, params_force, signal_coeff_hidden,fhidden, omega_f, amplitude_f
+    global dt, proj_C, A, XiCov, C, dW, params_force, signal_coeff_hidden,fhidden, omega_f, amplitude_f, Afext
     gamma, omega, n, eta, kappa, params_force = params
     omega_f = params_force[1][0]
     fhidden = params_force[0] #i look at the first component of fhidden, but dx = A-() *dt + fdt, with (0, f) and x=(x,p), so it's a force
+
+    Afext = np.array([[0.,omega_f],[-omega_f,0.]])
 
     period = (2*np.pi/omega)
     total_time = period*periods
