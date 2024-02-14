@@ -39,6 +39,8 @@ Period = 2*np.pi/omega
 spectra_signal, sdy = np.abs(np.fft.fft(x[:,0]))**2, np.abs(np.fft.fft(dy[:,0]))**2
 freqs_signal, fdy = np.fft.fftfreq(n = len(x[:,0]), d= dt)*(2*np.pi), np.fft.fftfreq(n = len(dy[:,0]), d= dt)*(2*np.pi)
 
+
+
 fig=plt.figure(figsize=(8,4))
 ax = plt.subplot(121)
 ax.plot(freqs_signal, spectra_signal)
@@ -46,7 +48,6 @@ ax.loglog()
 ax = plt.subplot(122)
 ax.plot(fdy, sdy)
 ax.loglog()
-
 
 
 

@@ -5,22 +5,28 @@ import sys
 sys.path.insert(0, os.getcwd())
 from scipy.linalg import solve_continuous_are
 
+
 class GRNN(torch.nn.Module):
     def __init__(self,inputs_cell):
         super(GRNN, self).__init__()
 
         self.dt, self.simulation_params, trainable_params = inputs_cell
-        kernel_params = trainable_params[1:]
-        gamma, omega, n, eta, kappa, b = self.simulation_params
-
-        self.kernel_params = torch.nn.Parameter(data = torch.tensor(kernel_params,dtype=torch.float32,
+        K0, K1,K2, K3= trainable_params[1:]
+        gamma, omega, n, eta, kappa, params_force = self.simulation_params
+        a,b,I,tau,self.delay,zoom_f = params_force[1]
+        self.K0 = torch.nn.Parameter(data = torch.tensor(K0,dtype=torch.float32,
                                                               requires_grad=True))
+
+        self.K1 = torch.nn.Parameter(data = torch.tensor(K1,dtype=torch.float32,
+                                                              requires_grad=True))
+
+        self.K2 = torch.nn.Parameter(data = torch.tensor(K2,dtype=torch.float32,
+                                                      requires_grad=True))
 
         self.A = torch.tensor(data=[[-gamma/2, omega],[-omega,-gamma/2]], dtype=torch.float32).detach()
         self.proj_C = torch.tensor(data=[[1.,0.],[0.,0.]], dtype=torch.float32).detach()
         self.C = np.sqrt(4*eta*kappa)*self.proj_C.detach()
         self.D = (gamma*(n+0.5) + kappa)*torch.eye(2).detach()
-
 
 
     def forward(self, dy, state, f):
@@ -37,12 +43,21 @@ class GRNN(torch.nn.Module):
         xicov = cov.matmul(self.C.T)
         dx = (self.A - xicov.matmul(self.C)).matmul(x)*self.dt + xicov.matmul(dy)
 
-        df = self.kernel_params[0]*f*self.dt # +   self.dt*self.kernel_params[1]*f**2
+        df_0 = torch.squeeze(self.K0)*self.dt
+        df_1 = torch.squeeze(self.K1).matmul(f)*self.dt
+        df_2_0 = torch.squeeze(self.K2_0).matmul(f**2)*self.dt
+        df_2_1 = torch.squeeze(self.K2_1).matmul(f*torch.flip(f,[-1]))*self.dt
+        df_3 = torch.squeeze(self.K3).matmul(f**3)*self.dt
 
-        fnew = f + df
-        dx += fnew*self.dt
+        fnew = f + self.delay*(df_0 + df_1 + df_3 + df_2_0 + df_2_1)
+
+        dx += torch.squeeze(self.proj_F).matmul(fnew)*self.dt
         dcov = self.dt*(cov.matmul(self.A.T) + (self.A).matmul(cov) + self.D - (xicov.matmul(xicov.T)))
         ncov = cov+dcov
+        #print(x, dx)
+        #print(ncov)
+        #print(t, self.dt)
+        #print(f, fnew)
         nstate = torch.concatenate([(x + dx), torch.tensor([ncov[0,0],ncov[1,1],ncov[1,0]]), torch.tensor([t+self.dt])])
         dy_hat = self.C.matmul(x)*self.dt
         return nstate, dy_hat, fnew
@@ -52,7 +67,6 @@ class RecurrentNetwork(torch.nn.Module):
         super(RecurrentNetwork, self).__init__()
         self.RCell = GRNN(inputs_cell=inputs_cell)
         self.dt, self.simulation_params, trainable_params = inputs_cell
-
         self.initial_state = torch.nn.Parameter(torch.tensor(trainable_params[0]))
 
     def forward(self, dys):
@@ -69,7 +83,6 @@ class RecurrentNetwork(torch.nn.Module):
         t0=0.
         xs_hat = [torch.tensor([0., 0., Cov[0,0], Cov[1,1],Cov[1,0], t0], dtype=torch.float32)]
 
-        #fs_hat = #[torch.self.amplitude_force0]
         fs_hat = [self.initial_state]
 
         x_hat = xs_hat[0]
