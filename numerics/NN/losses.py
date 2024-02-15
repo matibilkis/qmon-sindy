@@ -19,6 +19,8 @@ def log_lik(dys, dys_hat, model=None,dt=1e-3, alpha=0.0):
 
 def err_f(f,fhat, one_dim=True):
     if one_dim==True:
-        return np.sum(np.abs(f - fhat[:-1].detach().numpy() ))/np.sum(np.abs(f))
+        #return np.sum(np.abs(f - fhat[:-1].detach().numpy() ))/np.sum(np.abs(f))
+        return np.mean(np.abs(f - fhat[:-1].detach().numpy() ))
+
     else:
-        return np.sum(np.abs(f - fhat[:-1,:].detach().numpy() ))/np.sum(np.abs(f))
+        return np.mean(np.abs(f - fhat[:-1,:].detach().numpy() ))#/np.sum(np.abs(f))
