@@ -6,40 +6,40 @@ from numerics.utilities.misc import *
 import torch
 from tqdm import tqdm
 from scipy.linalg import solve_continuous_are
-from numerics.NN.models.sin.in01 import *
+from numerics.NN.models.sin.in01234 import *
 from numerics.NN.losses import *
 from numerics.NN.misc import *
 import copy
 import argparse
 import time
 
+# %load_ext autoreload
+# %autoreload 2
 
 if __name__ == "__main__":
 
     mode="sin"
-    id_NN = "in01"
+    id_NN = "in01234"
 
     start = time.time()
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--itraj", type=int, default=1)
     parser.add_argument("--printing", type=int, default=0)
-    parser.add_argument("--alpha", type=float, default=1e-2)
-    parser.add_argument("--noise_level", type=float, default=1e0)
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--alpha", type=float, default=1e1)
+    parser.add_argument("--noise_level", type=float, default=1e-2)
+    parser.add_argument("--lr", type=float, default=1e-4)
 
     args = parser.parse_args()
-    testing=False
-    if testing is True:
-        itraj, alpha, printing = 1, 0., 1
-        # %load_ext autoreload
-        # %autoreload 2
+    # testing=False
+    # if testing is True:
+    #     itraj, alpha, printing, lr, noise_level = 1, 0., 1, 1e-4, .1
+    #
 
     printing=args.printing
     itraj = args.itraj ###this determines the seed
-
     printing=[False,True][printing]
-
     alpha, lr, noise_level = args.alpha, args.lr, args.noise_level
+
 
     torch.manual_seed(itraj)
     np.random.seed(itraj)
@@ -48,32 +48,30 @@ if __name__ == "__main__":
     dy = load_data(itraj=itraj,what="dys.npy",mode=mode)
     f = load_data(itraj=itraj, what="external_signal.npy",mode=mode)
 
-        ####
     params, exp_path = give_params(mode=mode)
     gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
     period = (2*np.pi/omega)
     total_time = period*periods
     dt = period/ppp
     times = np.arange(0,total_time+dt,dt)
-    ###
+    def give_random_simp():
+        aa = np.random.random()
+        return np.array([[0,aa],[-aa,0]])
 
+    def cast(a):
+        return a.astype("float32")
 
     [omega_ext] = np.array(params_force[1])
     dev = torch.device("cpu")
-    K0 = np.zeros(2)
-    K1 = np.array([[0,-omega_ext],[omega_ext,0]])
-    K1 = K1 + np.random.randn(*list(K1.shape))*np.std(K1)*noise_level
-    K2 = np.random.uniform()*noise_level
+    K1 = cast(np.array([[0,-omega_ext],[omega_ext,0]]) + np.random.rand(2,2)*noise_level)
+    K2 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
+    K3 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
+    K4 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
 
-
-    initial_condition = np.array(params_force[0])
-    initial_condition+=np.random.randn(*list(initial_condition.shape))*np.std(initial_condition)*noise_level
+    initial_condition = np.array(params_force[0]) + np.random.rand(2)*noise_level
     initial_condition=list(initial_condition.astype("float32"))
 
-    K0 = K0.astype("float32")
-    K1 = K1.astype("float32")
-
-    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [initial_condition, K0, K1 ]]
+    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [initial_condition, K1, K2, K3, K4 ]]
     rrn = RecurrentNetwork(inputs_cell)
     optimizer = torch.optim.Adam(list(rrn.parameters()), lr=lr)
     dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
