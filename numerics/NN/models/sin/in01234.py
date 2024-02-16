@@ -15,8 +15,13 @@ class GRNN(torch.nn.Module):
         gamma, omega, n, eta, kappa, params_force = self.simulation_params
         [omegaf] = params_force[1]
 
-        self.K = {k+1:torch.nn.Parameter(data = torch.tensor(K,dtype=torch.float32,
-                                                              requires_grad=True)) for k,K in enumerate(trainable_params[1:])}
+        # self.K1 = {k+1:torch.nn.Parameter(data = torch.tensor(K,dtype=torch.float32,
+                                                              # requires_grad=True)) for k,K in enumerate(trainable_params[1:])}
+
+        self.K1 = torch.nn.Parameter(data = torch.tensor(K1,dtype=torch.float32,requires_grad=True))
+        self.K2 = torch.nn.Parameter(data = torch.tensor(K2,dtype=torch.float32,requires_grad=True))
+        self.K3 = torch.nn.Parameter(data = torch.tensor(K3,dtype=torch.float32,requires_grad=True))
+        self.K4 = torch.nn.Parameter(data = torch.tensor(K4,dtype=torch.float32,requires_grad=True))
 
 
         self.A = torch.tensor(data=[[-gamma/2, omega],[-omega,-gamma/2]], dtype=torch.float32).detach()
@@ -40,12 +45,12 @@ class GRNN(torch.nn.Module):
         xicov = cov.matmul(self.C.T)
         dx = (self.A - xicov.matmul(self.C)).matmul(x)*self.dt + xicov.matmul(dy)
 
-        df_1 = torch.squeeze(self.K[1]).matmul(f)*self.dt
-        df_2 = torch.squeeze(self.K[2]).matmul(f**2)*self.dt
-        df_3 = torch.squeeze(self.K[3]).matmul(f*torch.flip(f,[-1]))*self.dt
-        df_4 = torch.squeeze(self.K[4]).matmul(f**3)*self.dt
+        df_1 = torch.squeeze(self.K1).matmul(f)*self.dt
+        df_2 = torch.squeeze(self.K2).matmul(f**2)*self.dt
+        df_3 = torch.squeeze(self.K3).matmul(f*torch.flip(f,[-1]))*self.dt
+        df_4 = torch.squeeze(self.K4).matmul(f**3)*self.dt
 
-        fnew = f + df_1 + df_2 + df_3 + df_4
+        fnew = f + df_1 + 0.*(df_2 + df_3 + df_4)
 
         dx += torch.squeeze(self.proj_F).matmul(fnew)*self.dt
         dcov = self.dt*(cov.matmul(self.A.T) + (self.A).matmul(cov) + self.D - (xicov.matmul(xicov.T)))

@@ -35,6 +35,30 @@ def set_params_to_best(rrn, history):
     return index_favorite
 
 
+def give_random_simp():
+    aa = np.random.random()
+    return np.array([[0,aa],[-aa,0]])
+
+def cast(a):
+    return a.astype("float32")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def get_plot_data_NN(itraj, mode="sin",id_NN="in01", noise_level=0.1):
     if mode=="sin":
         if id_NN == "in01":
@@ -68,6 +92,41 @@ def get_plot_data_NN(itraj, mode="sin",id_NN="in01", noise_level=0.1):
             K1 = K1.astype("float32")
 
             inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [initial_condition, K0, K1 ]]
+
+            rrn = RecurrentNetwork(inputs_cell)
+            dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
+            ixs_hat, idys_hat, ifs_hats = rrn(dys)
+
+            return rrn, ixs_hat, idys_hat, ifs_hats, x, dys, f, exp_path
+        elif id_NN == "in01234":
+            from numerics.NN.models.sin.in01234 import RecurrentNetwork
+
+            torch.manual_seed(itraj)
+            np.random.seed(itraj)
+
+            x = load_data(itraj=itraj, what="hidden_state.npy",mode=mode)
+            dy = load_data(itraj=itraj,what="dys.npy",mode=mode)
+            f = load_data(itraj=itraj, what="external_signal.npy",mode=mode)
+
+            params, exp_path = give_params(mode=mode)
+            gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
+            period = (2*np.pi/omega)
+            total_time = period*periods
+            dt = period/ppp
+            times = np.arange(0,total_time+dt,dt)
+
+            [omega_ext] = np.array(params_force[1])
+            dev = torch.device("cpu")
+            K1 = cast(np.array([[0,omega_ext],[-omega_ext,0]]) )#+ np.random.rand(2,2)*noise_level)
+            zero = np.zeros((2,2))
+            K2 = K3= K4= cast(zero)#give_random_simp() + np.random.rand(2,2)*noise_level)
+            # K3 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
+            # K4 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
+
+            initial_condition = np.array(params_force[0]) + np.random.rand(2)*noise_level
+            initial_condition=list(initial_condition.astype("float32"))
+
+            inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [initial_condition, K1, K2, K3, K4 ]]
 
             rrn = RecurrentNetwork(inputs_cell)
             dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))

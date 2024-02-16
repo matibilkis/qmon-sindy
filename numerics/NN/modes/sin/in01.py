@@ -23,9 +23,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--itraj", type=int, default=1)
     parser.add_argument("--printing", type=int, default=0)
-    parser.add_argument("--alpha", type=float, default=1e-2)
-    parser.add_argument("--noise_level", type=float, default=1e0)
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--alpha", type=float, default=1e-16)
+    parser.add_argument("--noise_level", type=float, default=1e-16)
+    parser.add_argument("--lr", type=float, default=1e-4)
 
     args = parser.parse_args()
     testing=False

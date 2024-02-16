@@ -108,3 +108,17 @@ def RK4(f,g,x,dWs,i,t,dt):
     k4 = dt * f( x4,t4) + np.sqrt(q4)*g(x4,t4).dot(dw)
 
     return (a51 * k1) + (a52 * k2) + (a53 * k3) + (a54 * k4)
+
+
+def RungeKutta(x, y, dx, dydx):
+
+    k1 = dx*dydx(x, y)
+    k2 = dx*dydx(x+dx/2., y+k1/2.)
+    k3 = dx*dydx(x+dx/2., y+k2/2.)
+    k4 = dx*dydx(x+dx, y+k3)
+
+    # Calculate new x and y
+    y = y + 1./6*(k1+2*k2+2*k3+k4)
+    x = x + dx
+
+    return x, y

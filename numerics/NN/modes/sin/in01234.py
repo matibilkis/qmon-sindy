@@ -25,8 +25,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--itraj", type=int, default=1)
     parser.add_argument("--printing", type=int, default=0)
-    parser.add_argument("--alpha", type=float, default=1e1)
-    parser.add_argument("--noise_level", type=float, default=1e-2)
+    parser.add_argument("--alpha", type=float, default=1e-16)
+    parser.add_argument("--noise_level", type=float, default=1e-16)
     parser.add_argument("--lr", type=float, default=1e-4)
 
     args = parser.parse_args()
@@ -54,19 +54,15 @@ if __name__ == "__main__":
     total_time = period*periods
     dt = period/ppp
     times = np.arange(0,total_time+dt,dt)
-    def give_random_simp():
-        aa = np.random.random()
-        return np.array([[0,aa],[-aa,0]])
 
-    def cast(a):
-        return a.astype("float32")
 
     [omega_ext] = np.array(params_force[1])
     dev = torch.device("cpu")
-    K1 = cast(np.array([[0,-omega_ext],[omega_ext,0]]) + np.random.rand(2,2)*noise_level)
-    K2 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
-    K3 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
-    K4 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
+    K1 = cast(np.array([[0,omega_ext],[-omega_ext,0]]) )#+ np.random.rand(2,2)*noise_level)
+    zero = np.zeros((2,2))
+    K2 = K3= K4= cast(zero)#give_random_simp() + np.random.rand(2,2)*noise_level)
+    # K3 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
+    # K4 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
 
     initial_condition = np.array(params_force[0]) + np.random.rand(2)*noise_level
     initial_condition=list(initial_condition.astype("float32"))
@@ -78,6 +74,7 @@ if __name__ == "__main__":
 
     xs_hat, dys_hat, fs_hats = rrn(dys)
     loss, loss_terms = log_lik(dys, dys_hat, model=rrn, alpha=alpha, dt=dt)
+    signal_distance = err_f(f[:,0],fs_hats[:,0])
     history = {}
     history["losses"] = [ [loss.item(),loss_terms, err_f(f[:,0],fs_hats[:,0])]  ]
     history["params"] = [[k.detach().data for k in list(rrn.parameters())]]
@@ -85,10 +82,10 @@ if __name__ == "__main__":
     history["optimizer"] = [optimizer.state_dict()]
 
     if printing==True:
-        print("ind: ", 0)
-        print(loss.item())
-        print(err_f(f[:,0],fs_hats[:,0]))
-        print(history["params"][-1])
+        print("**** iteration {} ****".format(-1))
+        print("losses: ",loss.item(), loss_terms)
+        print("MSE signal, true ",signal_distance)
+        print("params: ",history["params"][-1])
         print("\n")
 
     for ind in range(int(1e3)):
@@ -110,9 +107,9 @@ if __name__ == "__main__":
             print("saving in {}".format(dire))
             print("ind: ", ind)
             print("**** iteration {} ****".format(ind))
-            print(loss.item(), loss_terms)
-            print(signal_distance)
-            print(history["params"][-1])
+            print("losses: ",loss.item(), loss_terms)
+            print("MSE signal, true ",signal_distance)
+            print("params: ",history["params"][-1])
             print("\n")
         if (np.abs(loss.item()) < 1+1e-7) or (time.time() - start > 47.9*3600):
             break

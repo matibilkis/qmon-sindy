@@ -57,7 +57,6 @@ def integrate(params, periods=10,ppp=500,  itraj=1, exp_path="",**kwargs):
 
     #pHHM=params_force[1]
     #signal_coeff_hidden = np.array([[pHHM[0], pHHM[1]],[-pHHM[1], pHHM[0]]])
-
     Cov = solve_continuous_are((A-G.dot(C)).T, C.T, D- (G.T).dot(G), np.eye(2)) #### A.T because the way it's implemented!
     XiCov = Cov.dot(C.T) + G.T
 
