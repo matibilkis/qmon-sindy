@@ -30,6 +30,7 @@ x = load_data(itraj=itraj, what="hidden_state.npy",mode=mode)
 dy = load_data(itraj=itraj,what="dys.npy",mode=mode)
 f = load_data(itraj=itraj, what="external_signal.npy",mode=mode)
 
+
 x.shape
 
 params, exp_path = give_params(mode=mode)
@@ -39,12 +40,14 @@ total_time = period*periods
 dt = period/ppp
 times = np.arange(0,total_time+dt,dt)
 
-
 [omega_ext] = np.array(params_force[1])
 dev = torch.device("cpu")
 K1 = cast(np.array([[0,omega_ext],[-omega_ext,0]]) )#+ np.random.rand(2,2)*noise_level)
 zero = np.zeros((2,2))
 K2 = K3= K4= cast(zero)#give_random_simp() + np.random.rand(2,2)*noise_level)
+# K3 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
+# K4 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
+
 initial_condition = np.array(params_force[0]) + np.random.rand(2)*noise_level
 initial_condition=list(initial_condition.astype("float32"))
 
@@ -54,14 +57,33 @@ optimizer = torch.optim.Adam(list(rrn.parameters()), lr=lr)
 dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
 
 xs_hat, dys_hat, fs_hats = rrn(dys)
+
+ls,lw=15,3
+fig2 = plt.figure(figsize=(35,5))
+ax=plt.subplot(161)
+ax.plot(xs_hat.detach().numpy()[:,0], color="red",marker='.')
+ax.plot(x[:,0])
+ax=plt.subplot(162)
+ax.plot(xs_hat.detach().numpy()[:,1], color="red",marker='.')
+ax.plot(x[:,1])
+ax=plt.subplot(163)
+ax.plot(dys[:,0])
+ax.plot(dys_hat.detach().numpy()[:,0], color="red",marker='.')
+
+ax=plt.subplot(164)
+ax.plot(fs_hats.detach().numpy()[:,0], color="red",marker='.')
+ax.plot(f[:,0])
+
+plt.plot(fs_hats.detach().numpy().squeeze()[:,0])
+
 loss, loss_terms = log_lik(dys, dys_hat, model=rrn, alpha=alpha, dt=dt)
 signal_distance = err_f(f[:,0],fs_hats[:,0])
 
 signal_distance
-
 initial_condition
 
-plt.plot(fs_hats.detach().numpy().squeeze()[:,0])
+
+xs_hat
 
 
 

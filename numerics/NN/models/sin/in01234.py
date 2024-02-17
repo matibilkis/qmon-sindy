@@ -30,6 +30,20 @@ class GRNN(torch.nn.Module):
         self.D = (gamma*(n+0.5) + kappa)*torch.eye(2).detach()
         self.proj_F = torch.tensor(data=[[[0,0],[1,0]]], dtype=torch.float32).detach() # the first component of f is the HMM,that enters as a force in the second component of x
 
+    def rk_step(self, x):
+        k1 = self.kernel(x)*self.dt
+        k2 = self.dt*self.kernel(x+k1/2.)
+        k3 = self.dt*self.kernel(x+k2/2.)
+        k4 = self.dt*self.kernel(x+k3)
+        return (k1+2*k2+2*k3+k4)/6.
+
+    def kernel(self,x):
+        f1 = torch.squeeze(self.K1).matmul(x)
+        f2 = torch.squeeze(self.K2).matmul(x**2)
+        f3 = torch.squeeze(self.K3).matmul(x*torch.flip(x,[-1]))
+        f4 = torch.squeeze(self.K4).matmul(x**3)
+        return f1 + 0.*f2 + 0.*f3 + f4
+
 
     def forward(self, dy, state, f):
         """
@@ -45,20 +59,12 @@ class GRNN(torch.nn.Module):
         xicov = cov.matmul(self.C.T)
         dx = (self.A - xicov.matmul(self.C)).matmul(x)*self.dt + xicov.matmul(dy)
 
-        df_1 = torch.squeeze(self.K1).matmul(f)*self.dt
-        df_2 = torch.squeeze(self.K2).matmul(f**2)*self.dt
-        df_3 = torch.squeeze(self.K3).matmul(f*torch.flip(f,[-1]))*self.dt
-        df_4 = torch.squeeze(self.K4).matmul(f**3)*self.dt
-
-        fnew = f + df_1 + 0.*(df_2 + df_3 + df_4)
+        fnew = f + self.rk_step(f)
 
         dx += torch.squeeze(self.proj_F).matmul(fnew)*self.dt
         dcov = self.dt*(cov.matmul(self.A.T) + (self.A).matmul(cov) + self.D - (xicov.matmul(xicov.T)))
         ncov = cov+dcov
-        #print(x, dx)
-        #print(ncov)
-        #print(t, self.dt)
-        #print(f, fnew)
+
         nstate = torch.concatenate([(x + dx), torch.tensor([ncov[0,0],ncov[1,1],ncov[1,0]]), torch.tensor([t+self.dt])])
         dy_hat = self.C.matmul(x)*self.dt
         return nstate, dy_hat, fnew

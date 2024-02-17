@@ -14,6 +14,18 @@ def Euler_step_state(x, noise_vector, f):
     return x + A.dot(x)*dt + XiCov.dot(noise_vector) + np.array([0,f[0]])*dt
 
 @jit(nopython=True)
+def RK(x, dt, f):
+    k1 = dt*f(x)
+    k2 = dt*f(x+k1/2.)
+    k3 = dt*f(x+k2/2.)
+    k4 = dt*f(x+k3)
+    return x + (k1+2*k2+2*k3+k4)/6.
+
+@jit(nopython=True)
+def fsi(x):
+    return Af.dot(x)
+
+@jit(nopython=True)
 def Euler_step_signal(f):
     #prams_foce = [omega_f]  linear oscillator
     x,y = f
@@ -30,16 +42,16 @@ def IntLoop(times):
     dys = [[0.,0.]]
     for ind, t in enumerate(times[:-1]):
         hidden_state[ind+1] = Euler_step_state(hidden_state[ind], dW[ind], external_signal[ind])
-        external_signal[ind+1] = Euler_step_signal(external_signal[ind])
+        external_signal[ind+1] = RK(external_signal[ind], dt, fsi)
         dys.append(C.dot(hidden_state[ind])*dt + proj_C.dot(dW[ind]))
     return hidden_state, external_signal, dys
 
 def integrate(params, periods=10,ppp=500,  itraj=1, exp_path="",**kwargs):
-    global dt, proj_C, A, XiCov, C, dW, params_force, signal_coeff_hidden,fhidden, omega_f, amplitude_f
+    global dt, proj_C, A, XiCov, C, dW, params_force, signal_coeff_hidden,fhidden, omega_f, amplitude_f, Af
     gamma, omega, n, eta, kappa, params_force = params
     omega_f = params_force[1][0]
     fhidden = params_force[0] #i look at the first component of fhidden, but dx = A-() *dt + fdt, with (0, f) and x=(x,p), so it's a force
-
+    Af = np.array([[0.,omega_f],[-omega_f,0.]])
     period = (2*np.pi/omega)
     total_time = period*periods
     dt = period/ppp

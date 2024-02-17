@@ -109,16 +109,37 @@ def RK4(f,g,x,dWs,i,t,dt):
 
     return (a51 * k1) + (a52 * k2) + (a53 * k3) + (a54 * k4)
 
+# 
+# import matplotlib.pyplot as plt
+# import numpy as np
+#
+#
+# def f(x):
+#     return A.dot(x)
+#
+#
+# def RK(x, dt, f):
+#     k1 = dt*f(x)
+#     k2 = dt*f(x+k1/2.)
+#     k3 = dt*f(x+k2/2.)
+#     k4 = dt*f(x+k3)
+#     return (k1+2*k2+2*k3+k4)/6.
+#
+# omegax = 1.
+# period = 2*np.pi/omegax
+# periods = 100.
+# ppp = 10.
+# dt = period/ppp
+# times = np.arange(0,periods*period+dt, dt)
+# omega = 0.1
+# A = np.array([[0,omega],[-omega,0.]]).astype("float32")
+#
+# eu, rk  = [np.array([3.,0.])], [np.array([3.,0.])]
+# for k,t in enumerate(times):
+#     eu.append(eu[k] + f(eu[k])*dt)
+#     rk.append(rk[k]+ RK(rk[k],dt,f))
+#
+# plt.plot(np.stack(rk)[:,0])
+# plt.plot(np.stack(eu)[:,0])
 
-def RungeKutta(x, y, dx, dydx):
-
-    k1 = dx*dydx(x, y)
-    k2 = dx*dydx(x+dx/2., y+k1/2.)
-    k3 = dx*dydx(x+dx/2., y+k2/2.)
-    k4 = dx*dydx(x+dx, y+k3)
-
-    # Calculate new x and y
-    y = y + 1./6*(k1+2*k2+2*k3+k4)
-    x = x + dx
-
-    return x, y
+#

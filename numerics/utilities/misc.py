@@ -16,13 +16,13 @@ def get_def_path(what="trajectories"):
     return defpath
 
 
-def give_params(periods=100, ppp=100, mode="exp-dec"):
+def give_params(periods=100, ppp=50, mode="exp-dec"):
     if mode == "exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [200., 1., 0.] ##antes kappa = 0.8
     elif mode =="osc-exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1 , 20., [[200.,0.], [-.5, 5.]] ##antes kappa = 0.8
     elif mode =="sin":
-        gamma, omega, n, eta, kappa, params_force  = 0.3, 1. , 10., .1 , .2, [[3., 0.], [0.5]] ##antes kappa = 0.8
+        gamma, omega, n, eta, kappa, params_force  = 0.3, 1. , 10., .1 , .2, [[3., 0.], [0.1]] ##antes kappa = 0.8
     elif mode =="FHN":
         a,b = .7, .8
         tau = 12.5

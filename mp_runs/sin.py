@@ -12,7 +12,6 @@ if uu in ["pop-os"]:
     python = "python3"
 else:
     python = "/data/jupyter/software/envs/master/bin/python3.11"
-cores=7
 
 
 parser = argparse.ArgumentParser(add_help=False)
@@ -21,10 +20,10 @@ args = parser.parse_args()
 global itraj
 itraj = args.itraj
 
-alphas = np.logspace(-6,1,8)
+alphas = list(np.linspace(0., 1e-2, 7))
 def int_seed(alpha):
-    # os.system("{} numerics/integration/external_forces/sin.py --itraj 1".format(python))
-    os.system("{} numerics/NN/modes/sin.py --alpha {} --lr 0.0001".format(python,alphas[alpha-1]))
+    os.system("{} numerics/NN/modes/sin/in01234.py --alpha {} --printing 1".format(python,alphas[alpha-1]))
 
-with mp.Pool(cores) as p:
-    p.map(int_seed, range(0,cores))
+# with mp.Pool(cores) as p:
+#     p.map(int_seed, range(0,cores))
+int_seed(itraj)

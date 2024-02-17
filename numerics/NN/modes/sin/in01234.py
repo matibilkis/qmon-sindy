@@ -19,14 +19,14 @@ import time
 if __name__ == "__main__":
 
     mode="sin"
-    id_NN = "in01234"
+    id_NN = "in1234"
 
     start = time.time()
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--itraj", type=int, default=1)
     parser.add_argument("--printing", type=int, default=0)
     parser.add_argument("--alpha", type=float, default=1e-16)
-    parser.add_argument("--noise_level", type=float, default=1e-16)
+    parser.add_argument("--noise_level", type=float, default=1e-2)
     parser.add_argument("--lr", type=float, default=1e-4)
 
     args = parser.parse_args()
@@ -55,14 +55,18 @@ if __name__ == "__main__":
     dt = period/ppp
     times = np.arange(0,total_time+dt,dt)
 
-
+    def kernelize():
+        j = give_random_simp()
+        j+=np.mean(j)*np.random.rand(2,2)*0.1
+        j*=noise_level
+        return cast(j)
     [omega_ext] = np.array(params_force[1])
     dev = torch.device("cpu")
-    K1 = cast(np.array([[0,omega_ext],[-omega_ext,0]]) )#+ np.random.rand(2,2)*noise_level)
     zero = np.zeros((2,2))
-    K2 = K3= K4= cast(zero)#give_random_simp() + np.random.rand(2,2)*noise_level)
-    # K3 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
-    # K4 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
+    K1 = cast(np.array([[0,omega_ext],[-omega_ext,0]]) + np.random.rand(2,2)*noise_level)
+    K2 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
+    K3 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
+    K4 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
 
     initial_condition = np.array(params_force[0]) + np.random.rand(2)*noise_level
     initial_condition=list(initial_condition.astype("float32"))
@@ -111,5 +115,5 @@ if __name__ == "__main__":
             print("MSE signal, true ",signal_distance)
             print("params: ",history["params"][-1])
             print("\n")
-        if (np.abs(loss.item()) < 1+1e-7) or (time.time() - start > 47.9*3600):
+        if (np.abs(loss.item()) < 1+1e-5) or (time.time() - start > 47.9*3600):
             break
