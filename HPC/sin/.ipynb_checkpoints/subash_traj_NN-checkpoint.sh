@@ -1,11 +1,9 @@
 #!/bin/bash
 itraj=$1
+noise=$2
+echo $noise
+echo $itraj
 cd ~/qmon-sindy
 . ~/qenv_bilkis/bin/activate
-START=$(date +%s.%N)
-python3 mp_runs/osc_exp_dec.py --itraj $(($itraj))
-END=$(date +%s.%N)
-DIFF=$(echo "$END - $START" | bc)
-echo $DIFF
-done
+python3 mp_runs/sin.py --itraj $itraj --noise_level $noise
 deactivate

@@ -1,11 +1,12 @@
 executable=HPC/sin/subash_traj_NN.sh
 
-output = ../jobs/outs/sin$(Item).out
-error = ../jobs/errs/sin$(Item).err
-log = ../jobs/logs/sin$(Item).log
+noise=0.01
+output = ../jobs/outs/sin$(Item)_$(noise).out
+error = ../jobs/errs/sin$(Item)_$(noise).err
+log = ../jobs/logs/sin$(Item)_$(noise).log
 request_cpus = 1
 request_memory = 2 GB
-+flavour="medium"
++flavour="short"
 
-args=$(Item)
-queue from seq 1 1 8|
+args=$(Item) $(noise)
+queue from seq 1 1 4|

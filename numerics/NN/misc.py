@@ -44,21 +44,6 @@ def cast(a):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def get_plot_data_NN(itraj, mode="sin",id_NN="in01", noise_level=0.1):
     if mode=="sin":
         if id_NN == "in01":
@@ -115,21 +100,67 @@ def get_plot_data_NN(itraj, mode="sin",id_NN="in01", noise_level=0.1):
             dt = period/ppp
             times = np.arange(0,total_time+dt,dt)
 
+            def kernelize():
+                j = give_random_simp()
+                j+=np.mean(j)*np.random.rand(2,2)*0.1
+                j*=noise_level
+                return cast(j)
             [omega_ext] = np.array(params_force[1])
             dev = torch.device("cpu")
-            K1 = cast(np.array([[0,omega_ext],[-omega_ext,0]]) )#+ np.random.rand(2,2)*noise_level)
             zero = np.zeros((2,2))
-            K2 = K3= K4= cast(zero)#give_random_simp() + np.random.rand(2,2)*noise_level)
-            # K3 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
-            # K4 = cast(give_random_simp() + np.random.rand(2,2)*noise_level)
+            K1 = cast(np.array([[0,omega_ext],[-omega_ext,0]]) + np.random.rand(2,2)*noise_level)
+            K2 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
+            K3 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
+            K4 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
 
             initial_condition = np.array(params_force[0]) + np.random.rand(2)*noise_level
             initial_condition=list(initial_condition.astype("float32"))
 
             inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [initial_condition, K1, K2, K3, K4 ]]
-
             rrn = RecurrentNetwork(inputs_cell)
+            optimizer = torch.optim.Adam(list(rrn.parameters()), lr=0.01)
             dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
+
+            ixs_hat, idys_hat, ifs_hats = rrn(dys)
+
+            return rrn, ixs_hat, idys_hat, ifs_hats, x, dys, f, exp_path
+        elif  id_NN=="in1234":
+            from numerics.NN.models.sin.in01234 import RecurrentNetwork
+
+            torch.manual_seed(itraj)
+            np.random.seed(itraj)
+
+            x = load_data(itraj=itraj, what="hidden_state.npy",mode=mode)
+            dy = load_data(itraj=itraj,what="dys.npy",mode=mode)
+            f = load_data(itraj=itraj, what="external_signal.npy",mode=mode)
+
+            params, exp_path = give_params(mode=mode)
+            gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
+            period = (2*np.pi/omega)
+            total_time = period*periods
+            dt = period/ppp
+            times = np.arange(0,total_time+dt,dt)
+
+            def kernelize():
+                j = give_random_simp()
+                j+=np.mean(j)*np.random.rand(2,2)*0.1
+                j*=noise_level
+                return cast(j)
+            [omega_ext] = np.array(params_force[1])
+            dev = torch.device("cpu")
+            K1 = cast(np.array([[0,omega_ext],[-omega_ext,0]]) + np.random.rand(2,2)*noise_level)
+            K2 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
+            K3 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
+            K4 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
+
+            initial_condition = np.array(params_force[0]) + np.random.rand(2)*noise_level
+            initial_condition=list(initial_condition.astype("float32"))
+
+            inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [initial_condition, K1, K2, K3, K4 ]]
+            rrn = RecurrentNetwork(inputs_cell)
+            optimizer = torch.optim.Adam(list(rrn.parameters()), lr=0.01)
+            dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
+
             ixs_hat, idys_hat, ifs_hats = rrn(dys)
 
             return rrn, ixs_hat, idys_hat, ifs_hats, x, dys, f, exp_path
@@ -179,6 +210,7 @@ def load_rnn_and_plot(rrn, ixs_hat, idys_hat, ifs_hats, x, dys, f, exp_path, itr
     ax=plt.subplot(164)
     ax.plot(fs_hats.detach().numpy()[:,0], color="red",marker='.')
     ax.plot(f[:,0])
+
 
     ax=plt.subplot(165)
     p1=ax.plot(np.stack(ll[:,1])[:,0], linewidth=lw,color="blue",label=r'$\ell_0 = \frac{1}{T}\sum_t |dy_t - \hat{dy}_t|^2$')
