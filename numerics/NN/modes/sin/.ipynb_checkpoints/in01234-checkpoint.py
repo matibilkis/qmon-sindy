@@ -68,7 +68,7 @@ if __name__ == "__main__":
     K3 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
     K4 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
 
-    initial_condition = np.array(params_force[0]) + np.random.rand(2)*noise_level
+    initial_condition = np.array([1,-1])#np.array(params_force[0]) + 10*np.random.rand(2)*noise_level
     initial_condition=list(initial_condition.astype("float32"))
 
     inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [initial_condition, K1, K2, K3, K4 ]]
