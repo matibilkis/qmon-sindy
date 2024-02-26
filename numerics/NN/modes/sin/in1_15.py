@@ -64,9 +64,7 @@ if __name__ == "__main__":
     dev = torch.device("cpu")
     zero = np.zeros((2,2))
     K1 = cast(np.array([[0,omega_ext],[-omega_ext,0]]) + np.random.rand(2,2)*noise_level)
-   # K2 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
-  #  K3 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
-   # K4 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
+
     K2,K3,K4,K5, K6, K7, K8,K9,K10,K11,K12,K13,K14,K15 = [kernelize()]*14
     
     initial_condition = np.array([1,-1])#np.array(params_force[0]) + 10*np.random.rand(2)*noise_level
