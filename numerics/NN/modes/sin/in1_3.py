@@ -6,7 +6,7 @@ from numerics.utilities.misc import *
 import torch
 from tqdm import tqdm
 from scipy.linalg import solve_continuous_are
-from numerics.NN.models.sin.in1_15 import *
+from numerics.NN.models.sin.in1_3 import *
 from numerics.NN.losses import *
 from numerics.NN.misc import *
 import copy
@@ -19,7 +19,7 @@ import time
 if __name__ == "__main__":
 
     mode="sin"
-    id_NN = "in1_15"
+    id_NN = "in1_3"
 
     start = time.time()
     parser = argparse.ArgumentParser(add_help=False)
@@ -54,6 +54,7 @@ if __name__ == "__main__":
     total_time = period*periods
     dt = period/ppp
     times = np.arange(0,total_time+dt,dt)
+
 
     [omega_ext] = np.array(params_force[1])
     dev = torch.device("cpu")

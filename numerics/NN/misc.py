@@ -42,130 +42,122 @@ def give_random_simp():
 def cast(a):
     return a.astype("float32")
 
+def w0_net(mode,id_NN,tmp_net):
+    if mode == "sin":
+        if id_NN=="in1_3":
+            coffs = {}
+            if tmp_net==0:
+                gin,oin = -.1, 2*0.1
+                ep2, ep3, ep4, ep5 = [.5, .4, -.3, .2]
+                initial_condition = np.array([-2.,1.])
+                coffK2= 0.*np.array([-.1, .02, -.02, -.4])
+            elif tmp_net == 1:
+                gin,oin = 0, 1.
+                ep2, ep3, ep4, ep5 = [.5, .4, -.3, .2]
+                initial_condition = np.array([.5,-.2])
+                coffK2=  np.array([-.1, .02, -.02, -.4])*0.01
+
+            coffs["K1"] = np.array([gin, oin, -oin, gin])
+            coffs["K2"] = coffK2
+            coffs["K3"] = ep2*coffs["K2"]
+        elif id_NN=="in1_6":
+            coffs = {}
+            if tmp_net==0:
+                gin,oin = -.1, 2*0.1
+                ep2, ep3, ep4, ep5 = [.5, .4, -.3, .2]
+                initial_condition = np.array([-2.,1.])
+                coffK2 = np.array([-.1, .02, -.02, -.4])
+            elif tmp_net == 1:
+                gin,oin = 0, 1.
+                ep2, ep3, ep4, ep5 = [.5, .4, -.3, .2]
+                initial_condition = np.array([.5,-.2])
+                coffK2 = np.array([-.1, .02, -.02, -.4])*0.01
+
+            coffs["K1"] = np.array([gin, oin, -oin, gin])
+            coffs["K2"] = coffK2
+            coffs["K3"] = ep2*coffs["K2"]
+
+            coffs["K4"] = ep3*np.array(coffs["K1"])
+            coffs["K5"] = ep3*np.array(coffs["K1"])
+            coffs["K6"] = ep3*np.array(coffs["K1"])
+
+        elif id_NN == "in1_15":
+            coffs = {}
+            if tmp_net==0:
+                gin,oin = -.1, 2*0.1
+                ep2, ep3, ep4, ep5 = [.5, .4, -.3, .2]
+                initial_condition = np.array([-2.,1.])
+                coffs["K2"] = np.array([-.1, .02, -.02, -.4])
+            elif tmp_net == 1:
+                gin,oin = 0, 1.
+                ep2, ep3, ep4, ep5 = [.5, .4, -.3, .2]
+                initial_condition = np.array([.5,-.2])
+                coffs["K2"] = np.array([-.1, .02, -.02, -.4])*0.01
+
+            coffs["K1"] = np.array([gin, oin, -oin, gin])
+            coffs["K3"] = ep2*coffs["K2"]
+
+            coffs["K4"] = ep3*np.array(coffs["K1"])
+            coffs["K5"] = ep3*np.array(coffs["K1"])
+            coffs["K6"] = ep3*np.array(coffs["K1"])
+
+            coffs["K7"] = ep4*coffs["K2"]
+            coffs["K8"] = ep4*coffs["K2"]
+            coffs["K9"] = ep4*coffs["K2"]
+            coffs["K10"] = ep4*coffs["K2"]
+
+            coffs["K11"] = ep5*np.array(coffs["K1"])
+            coffs["K12"] = ep5*np.array(coffs["K1"])
+            coffs["K13"] = ep5*np.array(coffs["K1"])
+            coffs["K14"] = ep5*np.array(coffs["K1"])
+            coffs["K15"] = ep5*np.array(coffs["K1"])
+
+    initial_condition=list(initial_condition.astype("float32"))
+
+    initial_params_net = [initial_condition]
+    for k in coffs.values():
+        initial_params_net+= [k.reshape((2,2))]
+
+    return initial_params_net
 
 
-def get_plot_data_NN(itraj, mode="sin",id_NN="in01", noise_level=0.1):
+
+def get_plot_data_NN(itraj, mode="sin",id_NN="in01", tmp_net=0):
+    params, exp_path = give_params(mode=mode)
+    gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
+    period = (2*np.pi/omega)
+    total_time = period*periods
+    dt = period/ppp
+    times = np.arange(0,total_time+dt,dt)
+
+    initial_params_net = w0_net(mode,id_NN,tmp_net)
     if mode=="sin":
         if id_NN == "in01":
             from numerics.NN.models.sin.in01 import RecurrentNetwork
-
-            torch.manual_seed(itraj)
-            np.random.seed(itraj)
-
-            x = load_data(itraj=itraj, what="hidden_state.npy",mode=mode)
-            dy = load_data(itraj=itraj,what="dys.npy",mode=mode)
-            f = load_data(itraj=itraj, what="external_signal.npy",mode=mode)
-
-            params, exp_path = give_params(mode=mode)
-            gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
-            period = (2*np.pi/omega)
-            total_time = period*periods
-            dt = period/ppp
-            times = np.arange(0,total_time+dt,dt)
-
-            [omega_ext] = np.array(params_force[1])
-            dev = torch.device("cpu")
-            K0 = np.zeros(2)
-            K1 = np.array([[0,omega_ext],[-omega_ext,0]])
-            K1 = K1 + np.random.randn(*list(K1.shape))*np.std(K1)*noise_level
-
-            initial_condition = np.array(params_force[0])
-            initial_condition+=np.random.randn(*list(initial_condition.shape))*np.std(initial_condition)*noise_level
-            initial_condition=list(initial_condition.astype("float32"))
-
-            K0 = K0.astype("float32")
-            K1 = K1.astype("float32")
-
-            inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [initial_condition, K0, K1 ]]
-
-            rrn = RecurrentNetwork(inputs_cell)
-            dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
-            ixs_hat, idys_hat, ifs_hats = rrn(dys)
-
-            return rrn, ixs_hat, idys_hat, ifs_hats, x, dys, f, exp_path
         elif id_NN == "in01234":
             from numerics.NN.models.sin.in01234 import RecurrentNetwork
-
-            torch.manual_seed(itraj)
-            np.random.seed(itraj)
-
-            x = load_data(itraj=itraj, what="hidden_state.npy",mode=mode)
-            dy = load_data(itraj=itraj,what="dys.npy",mode=mode)
-            f = load_data(itraj=itraj, what="external_signal.npy",mode=mode)
-
-            params, exp_path = give_params(mode=mode)
-            gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
-            period = (2*np.pi/omega)
-            total_time = period*periods
-            dt = period/ppp
-            times = np.arange(0,total_time+dt,dt)
-
-            def kernelize():
-                j = give_random_simp()
-                j+=np.mean(j)*np.random.rand(2,2)*0.1
-                j*=noise_level
-                return cast(j)
-            [omega_ext] = np.array(params_force[1])
-            dev = torch.device("cpu")
-            zero = np.zeros((2,2))
-            K1 = cast(np.array([[0,omega_ext],[-omega_ext,0]]) + np.random.rand(2,2)*noise_level)
-            K2 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
-            K3 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
-            K4 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
-
-            initial_condition = np.array(params_force[0]) + np.random.rand(2)*noise_level
-            initial_condition=list(initial_condition.astype("float32"))
-
-            inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [initial_condition, K1, K2, K3, K4 ]]
-            rrn = RecurrentNetwork(inputs_cell)
-            optimizer = torch.optim.Adam(list(rrn.parameters()), lr=0.01)
-            dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
-
-            ixs_hat, idys_hat, ifs_hats = rrn(dys)
-
-            return rrn, ixs_hat, idys_hat, ifs_hats, x, dys, f, exp_path
         elif  id_NN=="in1234":
             from numerics.NN.models.sin.in01234 import RecurrentNetwork
-
-            torch.manual_seed(itraj)
-            np.random.seed(itraj)
-
-            x = load_data(itraj=itraj, what="hidden_state.npy",mode=mode)
-            dy = load_data(itraj=itraj,what="dys.npy",mode=mode)
-            f = load_data(itraj=itraj, what="external_signal.npy",mode=mode)
-
-            params, exp_path = give_params(mode=mode)
-            gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
-            period = (2*np.pi/omega)
-            total_time = period*periods
-            dt = period/ppp
-            times = np.arange(0,total_time+dt,dt)
-
-            def kernelize():
-                j = give_random_simp()
-                j+=np.mean(j)*np.random.rand(2,2)*0.1
-                j*=noise_level
-                return cast(j)
-            [omega_ext] = np.array(params_force[1])
-            dev = torch.device("cpu")
-            K1 = cast(np.array([[0,omega_ext],[-omega_ext,0]]) + np.random.rand(2,2)*noise_level)
-            K2 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
-            K3 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
-            K4 = kernelize()#cast(give_random_simp() + np.random.rand(2,2))*noise_level
-
-            initial_condition = np.array(params_force[0]) + 10*np.random.rand(2)*noise_level
-            initial_condition=list(initial_condition.astype("float32"))
-
-            inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], [initial_condition, K1, K2, K3, K4 ]]
-            rrn = RecurrentNetwork(inputs_cell)
-            optimizer = torch.optim.Adam(list(rrn.parameters()), lr=0.01)
-            dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
-
-            ixs_hat, idys_hat, ifs_hats = rrn(dys)
-
-            return rrn, ixs_hat, idys_hat, ifs_hats, x, dys, f, exp_path
     else:
         raise NameError("fijate acá")
+
+    torch.manual_seed(itraj)
+    np.random.seed(itraj)
+
+    x = load_data(itraj=itraj, what="hidden_state.npy",mode=mode)
+    dy = load_data(itraj=itraj,what="dys.npy",mode=mode)
+    f = load_data(itraj=itraj, what="external_signal.npy",mode=mode)
+
+    dev = torch.device("cpu")
+
+    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], initial_params_net]
+
+    rrn = RecurrentNetwork(inputs_cell)
+    dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
+    ixs_hat, idys_hat, ifs_hats = rrn(dys)
+
+    return rrn, ixs_hat, idys_hat, ifs_hats, x, dys, f, exp_path
+
 
 
 
