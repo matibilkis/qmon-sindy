@@ -16,13 +16,13 @@ def get_def_path(what="trajectories"):
     return defpath
 
 
-def give_params(periods=100, ppp=50, mode="exp-dec"):
-    if mode == "exp-dec":
+def give_params(periods=25, ppp=50, mode="exp-dec"):
+    if mode =="sin":
+        gamma, omega, n, eta, kappa, params_force  = 0.3, 1. , 10., 1. , .8, [[3., 0.], [.8]]
+    elif mode == "exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [200., 1., 0.] ##antes kappa = 0.8
     elif mode =="osc-exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1 , 20., [[200.,0.], [-.5, 5.]] ##antes kappa = 0.8
-    elif mode =="sin":
-        gamma, omega, n, eta, kappa, params_force  = 0.3, 1. , 10., .1 , .2, [[3., 0.], [0.1]] ##antes kappa = 0.8
     elif mode =="FHN":
         a,b = .7, .8
         tau = 12.5
@@ -32,8 +32,15 @@ def give_params(periods=100, ppp=50, mode="exp-dec"):
     else:
         raise NameError("define force!")
     params_force.append(mode)
-    data_t = [float(periods), ppp]
-    p= [gamma, omega, n, eta, kappa, params_force, data_t]
+    params_sensor = [gamma, omega, n, eta, kappa]
+
+    period = (2*np.pi/omega)
+    total_time = period*periods
+    dt = period/ppp
+    times = np.arange(0,total_time+dt,dt)
+    data_t = [float(periods), ppp] #I use this to save
+
+    p= [params_sensor, params_force, data_t, [period, total_time, dt, times]]
     return p, str(p)+"/"
 
 def load_data(itraj = 1, what="hidden_state.npy",mode="exp-dec"):
@@ -43,39 +50,43 @@ def load_data(itraj = 1, what="hidden_state.npy",mode="exp-dec"):
     params, exp_path = give_params(mode=mode)
 
     ####
-    gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
+    params_sensor, params_force, [periods, ppp], [period, total_time, dt, times] = params
 
     path = get_def_path()+ exp_path + "{}itraj/periods_{}_ppp_{}/".format(itraj, float(periods), ppp)
     return np.load(path+what)
 
 
 
-def plot_integration(times,x,dy,f,dire,exp_path,ss=20):
-    os.makedirs(dire,exist_ok=True)
+def plot_integration(x,dy,f,freqs_signal, spectra_signal, params):
+    fig1 = plt.figure(figsize=(12,4))
+    ax=plt.subplot(231)
+    ax.plot(x[:,0])
+    ax=plt.subplot(232)
+    ax.plot(x[:,1])
+    ax=plt.subplot(233)
+    ax.plot(dy[:,0])
+    ax=plt.subplot(234)
+    ax.plot(f[:,0])
+    ax=plt.subplot(235)
+    ax.plot(freqs_signal, spectra_signal)
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax=plt.subplot(236)
+    ax.axis("off")
+    ax.text(0.2,.5,params[0])
+    ax.text(0.2,.2,params[1])
+    os.makedirs("analysis/physical_parameters/",exist_ok=True)
+    plt.savefig("analysis/physical_parameters/{}_{}.png".format(params[0], params[1]))
+    return fig1
 
-    plt.figure(figsize=(5,15))
-    ax=plt.subplot(711)
-    ax.plot(times,x[:,0])
-    ax.set_ylabel("q",size=ss)
-    ax.tick_params(axis='y', labelcolor="blue")
-    ax = ax.twinx()
-    ax.plot(times,x[:,1], color="red")
-    ax.tick_params(axis='y', labelcolor="red")
-    ax.set_ylabel("p",size=ss)
+def power_spectra(dy,params):
+    omega = params[0][1]
+    dt = params[3][2]
+    spectra_signal = np.abs(np.fft.fft(dy))**2
+    freqs_signal = np.fft.fftfreq(n = len(spectra_signal), d= dt)*(2*np.pi)
 
-    ax=plt.subplot(712)
-    ax.plot(times,dy[:,0])
-    ax.set_ylabel(r'$dy_q$',size=ss)
-
-    ax=plt.subplot(713)
-    ax.plot(times,f[:,0])
-    ax.set_ylabel("f_q",size=ss)
-    ax.tick_params(axis='y', labelcolor="blue")
-    ax = ax.twinx()
-    ax.plot(times,f[:,1], color="red")
-    ax.tick_params(axis='y', labelcolor="red")
-    ax.set_ylabel("f_p",size=ss)
-
-    plt.savefig(dire+exp_path[:-1]+".png")
-    print(dire, exp_path)
-    return dire, exp_path
+    cutoff = 10*omega
+    cond  = np.logical_and(freqs_signal < cutoff, freqs_signal>=0)
+    spectra_signal = spectra_signal[cond]
+    freqs_signal = freqs_signal[cond]
+    return freqs_signal, spectra_signal

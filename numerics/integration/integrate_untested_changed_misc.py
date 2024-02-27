@@ -31,7 +31,7 @@ def IntLoop(times):
 
 def integrate(params, periods=10,ppp=500,  itraj=1, exp_path="",**kwargs):
     global dt, proj_C, A, XiCov, C, dW, params_force, signal_coeff,f0
-    gamma, omega, n, eta, kappa, params_force = params
+    [gamma, omega, n, eta, kappa], params_force = params
 
     f0 = params_force[0]
 
@@ -86,14 +86,15 @@ if __name__ == "__main__":
     itraj = args.itraj ###this determines the seed
     params, exp_path = give_params(mode="exp-dec")
 
-    ####
-    gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
-
+    params_sensor, params_force, [periods, ppp], [period, total_time, dt, times] = params
     integrate(params=params[:-1],
               periods= periods,
               ppp=ppp,
               itraj=itraj,
               exp_path = exp_path)
+
+
+
 
 
 

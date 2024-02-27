@@ -48,7 +48,7 @@ def IntLoop(times):
 
 def integrate(params, periods=10,ppp=500,  itraj=1, exp_path="",**kwargs):
     global dt, proj_C, A, XiCov, C, dW, params_force, signal_coeff_hidden,fhidden, omega_f, amplitude_f, Af
-    gamma, omega, n, eta, kappa, params_force = params
+    [gamma, omega, n, eta, kappa], params_force = params
     omega_f = params_force[1][0]
     fhidden = params_force[0] #i look at the first component of fhidden, but dx = A-() *dt + fdt, with (0, f) and x=(x,p), so it's a force
     Af = np.array([[0.,omega_f],[-omega_f,0.]])
@@ -104,9 +104,8 @@ if __name__ == "__main__":
     params, exp_path = give_params(mode="sin")
 
     ####
-    gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
-    print(params_force)
-    integrate(params=params[:-1],
+    params_sensor, params_force, [periods, ppp], [period, total_time, dt, times] = params
+    integrate(params=[params_sensor, params_force],
               periods= periods,
               ppp=ppp,
               itraj=itraj,
