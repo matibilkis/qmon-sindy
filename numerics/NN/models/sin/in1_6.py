@@ -87,7 +87,7 @@ class RecurrentNetwork(torch.nn.Module):
         dys_hat = []
 
         ### Find stationary value of covariance for the parameter RCell currently has
-        gamma, omega, n, eta, kappa, b = self.simulation_params
+        [gamma, omega, n, eta, kappa], b = self.simulation_params
         A = np.array([[-gamma/2, omega],[-omega, -gamma/2]])
         proj_C = np.array([[1.,0.],[0.,0.]])
         C = np.sqrt(4*eta*kappa)*proj_C

@@ -18,7 +18,7 @@ def get_def_path(what="trajectories"):
 
 def give_params(periods=25, ppp=50, mode="exp-dec"):
     if mode =="sin":
-        gamma, omega, n, eta, kappa, params_force  = 0.3, 1. , 10., 1. , .8, [[3., 0.], [.8]]
+        gamma, omega, n, eta, kappa, params_force  = 0.3, 1. , 10., 1. , .8, [[3., 0.], [.99]]
     elif mode == "exp-dec":
         gamma, omega, n, eta, kappa, params_force  = 0.3, 10. , 10., 1.0 , 20., [200., 1., 0.] ##antes kappa = 0.8
     elif mode =="osc-exp-dec":

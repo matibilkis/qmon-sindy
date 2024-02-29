@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser.add_argument("--itraj", type=int, default=1)
     parser.add_argument("--printing", type=int, default=0)
     parser.add_argument("--alpha", type=float, default=1e-16)
-    parser.add_argument("--lr", type=float, default=1e-2)
+    parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--tmp_net", type=int, default=0)
 
     args = parser.parse_args()
@@ -49,19 +49,13 @@ if __name__ == "__main__":
     f = load_data(itraj=itraj, what="external_signal.npy",mode=mode)
 
     params, exp_path = give_params(mode=mode)
-    gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
-    period = (2*np.pi/omega)
-    total_time = period*periods
-    dt = period/ppp
-    times = np.arange(0,total_time+dt,dt)
-
-
+    params_sensor, params_force, [periods, ppp], [period, total_time, dt, times] = params
     [omega_ext] = np.array(params_force[1])
     dev = torch.device("cpu")
 
     initial_params_net = w0_net(mode, id_NN, tmp_net)
 
-    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], initial_params_net]
+    inputs_cell = [dt,  [params_sensor, params_force], initial_params_net]
     rrn = RecurrentNetwork(inputs_cell)
     optimizer = torch.optim.Adam(list(rrn.parameters()), lr=lr)
     dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))

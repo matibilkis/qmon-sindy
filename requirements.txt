@@ -2,4 +2,5 @@ torch
 numpy
 tqdm
 scipy
-numba 
+numba
+matplotlib

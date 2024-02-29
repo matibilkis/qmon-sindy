@@ -12,7 +12,7 @@ class GRNN(torch.nn.Module):
 
         self.dt, self.simulation_params, trainable_params = inputs_cell
         K1, K2, K3, K4,K5, K6, K7, K8,K9,K10,K11,K12,K13,K14,K15 = trainable_params[1:]
-        gamma, omega, n, eta, kappa, params_force = self.simulation_params
+        [gamma, omega, n, eta, kappa], params_force = self.simulation_params
         [omegaf] = params_force[1]
 
         # self.K1 = {k+1:torch.nn.Parameter(data = torch.tensor(K,dtype=torch.float32,
@@ -52,22 +52,22 @@ class GRNN(torch.nn.Module):
         f1 = torch.squeeze(self.K1).matmul(x)
         f2 = torch.squeeze(self.K2).matmul(x**2)
         f3 = torch.squeeze(self.K3).matmul(x*torch.flip(x,[-1]))
-        
+
         f4 = torch.squeeze(self.K4).matmul(x**3)
         f5 = torch.squeeze(self.K5).matmul(x*torch.flip(x**2,[-1]))
         f6 = torch.squeeze(self.K6).matmul((x**2)*torch.flip(x,[-1]))
-        
+
         f7 = torch.squeeze(self.K7).matmul(x**4)#*torch.flip(x,[-1]))
-        f8 = torch.squeeze(self.K8).matmul((x**3)*torch.flip(x,[-1]))        
+        f8 = torch.squeeze(self.K8).matmul((x**3)*torch.flip(x,[-1]))
         f9 = torch.squeeze(self.K9).matmul(x*torch.flip(x**3,[-1]))
         f10 = torch.squeeze(self.K10).matmul((x**2)*torch.flip(x**2,[-1]))
-        
+
         f11 = torch.squeeze(self.K11).matmul(x**5)#torch.flip(x,[-1]))
         f12 = torch.squeeze(self.K12).matmul((x**4)*torch.flip(x,[-1]))
         f13 = torch.squeeze(self.K13).matmul(x*torch.flip(x**4,[-1]))
         f14 = torch.squeeze(self.K14).matmul((x**3)*torch.flip(x**2,[-1]))
         f15 = torch.squeeze(self.K15).matmul((x**2)*torch.flip(x**3,[-1]))
-        
+
         return f1 + f2 + f3 + f4 + f5 + f6 + f7 + f8 + f9 + f10 + f11 + f12 + f12 + f13 + f13 + f14 + f15
 
 
@@ -106,7 +106,7 @@ class RecurrentNetwork(torch.nn.Module):
         dys_hat = []
 
         ### Find stationary value of covariance for the parameter RCell currently has
-        gamma, omega, n, eta, kappa, b = self.simulation_params
+        [gamma, omega, n, eta, kappa], b = self.simulation_params
         A = np.array([[-gamma/2, omega],[-omega, -gamma/2]])
         proj_C = np.array([[1.,0.],[0.,0.]])
         C = np.sqrt(4*eta*kappa)*proj_C

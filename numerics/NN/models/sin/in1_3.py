@@ -12,7 +12,7 @@ class GRNN(torch.nn.Module):
 
         self.dt, self.simulation_params, trainable_params = inputs_cell
         K1, K2, K3 = trainable_params[1:]
-        gamma, omega, n, eta, kappa, params_force = self.simulation_params
+        [gamma, omega, n, eta, kappa], params_force = self.simulation_params
         [omegaf] = params_force[1]
 
         # self.K1 = {k+1:torch.nn.Parameter(data = torch.tensor(K,dtype=torch.float32,
@@ -40,7 +40,6 @@ class GRNN(torch.nn.Module):
         f1 = torch.squeeze(self.K1).matmul(x)
         f2 = torch.squeeze(self.K2).matmul(x**2)
         f3 = torch.squeeze(self.K3).matmul(x*torch.flip(x,[-1]))
-
         return f1 + f2 + f3
 
 
@@ -79,7 +78,7 @@ class RecurrentNetwork(torch.nn.Module):
         dys_hat = []
 
         ### Find stationary value of covariance for the parameter RCell currently has
-        gamma, omega, n, eta, kappa, b = self.simulation_params
+        [gamma, omega, n, eta, kappa], b = self.simulation_params
         A = np.array([[-gamma/2, omega],[-omega, -gamma/2]])
         proj_C = np.array([[1.,0.],[0.,0.]])
         C = np.sqrt(4*eta*kappa)*proj_C

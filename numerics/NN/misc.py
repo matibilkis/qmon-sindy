@@ -47,15 +47,15 @@ def w0_net(mode,id_NN,tmp_net):
         if id_NN=="in1_3":
             coffs = {}
             if tmp_net==0:
-                gin,oin = -.1, 2*0.1
+                gin,oin = -.1, 1.*0.99
                 ep2, ep3, ep4, ep5 = [.5, .4, -.3, .2]
-                initial_condition = np.array([-2.,1.])
+                initial_condition = np.array([3.,0])
                 coffK2= 0.*np.array([-.1, .02, -.02, -.4])
             elif tmp_net == 1:
                 gin,oin = 0, 1.
                 ep2, ep3, ep4, ep5 = [.5, .4, -.3, .2]
                 initial_condition = np.array([.5,-.2])
-                coffK2=  np.array([-.1, .02, -.02, -.4])*0.01
+                coffK2=  np.array([-.1, .02, -.02, -.4])*0.0
 
             coffs["K1"] = np.array([gin, oin, -oin, gin])
             coffs["K2"] = coffK2
@@ -124,20 +124,15 @@ def w0_net(mode,id_NN,tmp_net):
 
 def get_plot_data_NN(itraj, mode="sin",id_NN="in01", tmp_net=0):
     params, exp_path = give_params(mode=mode)
-    gamma, omega, n, eta, kappa, params_force, [periods, ppp] = params
-    period = (2*np.pi/omega)
-    total_time = period*periods
-    dt = period/ppp
-    times = np.arange(0,total_time+dt,dt)
 
     initial_params_net = w0_net(mode,id_NN,tmp_net)
     if mode=="sin":
-        if id_NN == "in01":
-            from numerics.NN.models.sin.in01 import RecurrentNetwork
-        elif id_NN == "in01234":
-            from numerics.NN.models.sin.in01234 import RecurrentNetwork
-        elif  id_NN=="in1234":
-            from numerics.NN.models.sin.in01234 import RecurrentNetwork
+        if id_NN == "in1_3":
+            from numerics.NN.models.sin.in1_3 import RecurrentNetwork
+        elif id_NN == "in1_6":
+            from numerics.NN.models.sin.in1_6 import RecurrentNetwork
+        elif  id_NN=="in1_15":
+            from numerics.NN.models.sin.in1_15 import RecurrentNetwork
     else:
         raise NameError("fijate acá")
 
@@ -148,9 +143,11 @@ def get_plot_data_NN(itraj, mode="sin",id_NN="in01", tmp_net=0):
     dy = load_data(itraj=itraj,what="dys.npy",mode=mode)
     f = load_data(itraj=itraj, what="external_signal.npy",mode=mode)
 
-    dev = torch.device("cpu")
+    params, exp_path = give_params(mode=mode)
+    params_sensor, params_force, [periods, ppp], [period, total_time, dt, times] = params
 
-    inputs_cell = [dt,  [gamma, omega, n, eta, kappa, params_force], initial_params_net]
+    initial_params_net = w0_net(mode, id_NN, tmp_net)
+    inputs_cell = [dt,  [params_sensor, params_force], initial_params_net]
 
     rrn = RecurrentNetwork(inputs_cell)
     dys = torch.tensor(data=dy, dtype=torch.float32).to(torch.device("cpu"))
@@ -162,33 +159,33 @@ def get_plot_data_NN(itraj, mode="sin",id_NN="in01", tmp_net=0):
 
 
 
-def load_rnn_and_plot(rrn, ixs_hat, idys_hat, ifs_hats, x, dys, f, exp_path, itraj=1, alpha=0.0,lr=0.1, noise_level=0.1, mode="sin",id_NN="in01"):
+def load_rnn_and_plot(rrn, ixs_hat, idys_hat, ifs_hats, x, dys, f, exp_path, itraj=1, alpha=0.0,lr=0.1, mode="sin",id_NN="in1_3", tmp_net=0):
 
-    fig1 = plt.figure(figsize=(25,3))
-    ax=plt.subplot(171)
+    fig1 = plt.figure(figsize=(40,10))
+    ax=plt.subplot(141)
     ax.plot(ixs_hat.detach().numpy()[:,0], color="red",marker='.')
     ax.plot(x[:,0])
-    ax=plt.subplot(172)
+    ax=plt.subplot(142)
     ax.plot(ixs_hat.detach().numpy()[:,1], color="red",marker='.')
     ax.plot(x[:,1])
-    ax=plt.subplot(173)
+    ax=plt.subplot(143)
     ax.plot(dys[:,0])
     ax.plot(idys_hat.detach().numpy()[:,0], color="red",marker='.')
 
-    ax=plt.subplot(174)
+    ax=plt.subplot(144)
     ax.plot(ifs_hats.detach().numpy()[:,0], color="red",marker='.')
     ax.plot(f[:,0])
     plt.close()
 
-    history = load_history(what="{}/{}_{}_{}".format(mode+id_NN,alpha, lr, noise_level), exp_path=exp_path,itraj=itraj)
+    history = load_history(what="{}/{}_{}_{}".format(mode+id_NN,alpha, lr, tmp_net), exp_path=exp_path,itraj=itraj)
     best_ind = set_params_to_best(rrn,history)
     xs_hat, dys_hat, fs_hats = rrn(dys)
     loo = history["losses"]
     ll = np.array([[loo[k][0], loo[k][1], loo[k][2]] for k in range(len(loo))])
 
     ls,lw=15,3
-    fig2 = plt.figure(figsize=(35,5))
-    plt.suptitle("alpha = {}, seed = {}, lr = {}, perturbation of eq {}".format(alpha, itraj, history["optimizer"][0]["param_groups"][0]["lr"], noise_level), size=30)
+    fig2 = plt.figure(figsize=(60,10))
+    plt.suptitle("alpha = {}, seed = {}, lr = {}, tmp_net {}".format(alpha, itraj, history["optimizer"][0]["param_groups"][0]["lr"], tmp_net), size=30)
     ax=plt.subplot(161)
     ax.plot(xs_hat.detach().numpy()[:,0], color="red",marker='.')
     ax.plot(x[:,0])
