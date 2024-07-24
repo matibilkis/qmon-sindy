@@ -1,0 +1,11 @@
+executable=HPC/subash.sh
+seed=41
+output = ../jobs/outs/$(p1)_$(p2).out
+error = ../jobs/errs/$(p1)_$(p2).err
+log = ../jobs/logs/$(p1)_$(p2).log
+request_cpus = 1
+request_memory = 2 GB
++flavour="short"
+requirements= Has_avx == true
+args=$(p1) $(p2) $(seed)
+queue p1 p2 from /nfs/pic.es/user/m/mbilkis/tutorial-pic/HPC/params.txt
